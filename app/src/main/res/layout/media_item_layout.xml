@@ -4,28 +4,51 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <ImageView
-        android:id="@+id/mediaImageView"
-        android:layout_width="378dp"
+    <!-- FrameLayout for overlaying button on ImageView -->
+    <FrameLayout
+        android:layout_width="match_parent"
         android:layout_height="464dp"
-        android:layout_marginBottom="8dp"
-        android:scaleType="centerCrop" />
+        android:layout_marginBottom="8dp">
 
+        <!-- ImageView for movie poster -->
+        <ImageView
+            android:id="@+id/mediaImageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+        <!-- Save Button positioned at the bottom left corner -->
+        <ImageButton
+            android:id="@+id/saveButton"
+            android:layout_width="79dp"
+            android:layout_height="68dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp"
+            android:background="@drawable/save"
+            android:backgroundTint="@android:color/holo_blue_light"
+            android:contentDescription="Save"
+            android:padding="4dp"
+            android:scaleType="centerInside" />
+
+    </FrameLayout>
+
+    <!-- TextView for movie title -->
     <TextView
         android:id="@+id/mediaTitleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
         android:text="Movie Title"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
+        android:textStyle="bold" />
 
+    <!-- TextView for movie rating -->
     <TextView
         android:id="@+id/mediaRatingTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Rating: 0.0"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray" />
+        android:textColor="@android:color/darker_gray"
+        android:textSize="14sp" />
 
 </LinearLayout>

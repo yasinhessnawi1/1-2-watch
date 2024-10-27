@@ -1,6 +1,7 @@
 package com.example.a1_2_watch.ui
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,28 +34,40 @@ class HomeActivity : AppCompatActivity() {
 
     private fun setupRecyclerViews() {
         // Set up Movies RecyclerView
-        moviesAdapter = MediaAdapter { movie ->
-            // Handle movie item click
-        }
+        moviesAdapter = MediaAdapter(
+            onItemClick = { movie ->
+                // Handle movie item click
+            },
+            onSaveClick = { movie ->
+                Toast.makeText(this, "Saved ${movie.title ?: movie.name}", Toast.LENGTH_SHORT).show()
+            }
+        )
         binding.moviesRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.moviesRecyclerView.adapter = moviesAdapter
-        setupPaginationForRecyclerView(binding.moviesRecyclerView, MediaType.MOVIES)
 
         // Set up TV Shows RecyclerView
-        tvShowsAdapter = MediaAdapter { show ->
-            // Handle show item click
-        }
+        tvShowsAdapter = MediaAdapter(
+            onItemClick = { show ->
+                // Handle show item click
+            },
+            onSaveClick = { show ->
+                Toast.makeText(this, "Saved ${show.title ?: show.name}", Toast.LENGTH_SHORT).show()
+            }
+        )
         binding.tvShowsRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.tvShowsRecyclerView.adapter = tvShowsAdapter
-        setupPaginationForRecyclerView(binding.tvShowsRecyclerView, MediaType.TV_SHOWS)
 
         // Set up Anime RecyclerView
-        animeAdapter = MediaAdapter { anime ->
-            // Handle anime item click
-        }
+        animeAdapter = MediaAdapter(
+            onItemClick = { anime ->
+                // Handle anime item click
+            },
+            onSaveClick = { anime ->
+                Toast.makeText(this, "Saved ${anime.title ?: anime.name}", Toast.LENGTH_SHORT).show()
+            }
+        )
         binding.animeRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.animeRecyclerView.adapter = animeAdapter
-        setupPaginationForRecyclerView(binding.animeRecyclerView, MediaType.ANIME)
     }
 
     private fun setupPaginationForRecyclerView(recyclerView: RecyclerView, mediaType: MediaType) {

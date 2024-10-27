@@ -7,7 +7,10 @@ import com.bumptech.glide.Glide
 import com.example.a1_2_watch.moduls.Movie
 import com.example.a1_2_watch.databinding.MediaItemLayoutBinding
 
-class MediaAdapter(private val onItemClick: (Movie) -> Unit) : RecyclerView.Adapter<MediaAdapter.MovieViewHolder>() {
+class MediaAdapter(
+    private val onItemClick: (Movie) -> Unit,
+    private val onSaveClick: (Movie) -> Unit
+) : RecyclerView.Adapter<MediaAdapter.MovieViewHolder>() {
 
     private var movies: MutableList<Movie> = mutableListOf()
 
@@ -21,6 +24,10 @@ class MediaAdapter(private val onItemClick: (Movie) -> Unit) : RecyclerView.Adap
         holder.bind(movie)
         holder.itemView.setOnClickListener {
             onItemClick(movie)
+        }
+        // Handle Save Button Click
+        holder.binding.saveButton.setOnClickListener {
+            onSaveClick(movie)
         }
     }
 
@@ -38,12 +45,10 @@ class MediaAdapter(private val onItemClick: (Movie) -> Unit) : RecyclerView.Adap
         notifyItemRangeInserted(startPosition, movieList.size)
     }
 
-    class MovieViewHolder(private val binding: MediaItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
+    class MovieViewHolder(val binding: MediaItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(movie: Movie) {
-            // Check if it's a movie (title) or TV show/anime (name)
             val mediaTitle = movie.title ?: movie.name ?: "No Title Available"
-            binding.mediaTitleTextView.text = mediaTitle  // Display the title or name
-
+            binding.mediaTitleTextView.text = mediaTitle
             binding.mediaRatingTextView.text = "Rating: ${movie.vote_average}"
             Glide.with(binding.root.context)
                 .load("https://image.tmdb.org/t/p/original/${movie.poster_path}")
