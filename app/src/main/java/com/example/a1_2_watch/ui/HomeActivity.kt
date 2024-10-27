@@ -3,9 +3,11 @@ package com.example.a1_2_watch.ui
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.a1_2_watch.R
 import com.example.a1_2_watch.adapters.MediaAdapter
 import com.example.a1_2_watch.databinding.HomeLayoutBinding
+import com.example.a1_2_watch.moduls.MediaType
 import com.example.a1_2_watch.repository.MediaHandler
 
 class HomeActivity : AppCompatActivity() {
@@ -30,25 +32,52 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerViews() {
-
+        // Set up Movies RecyclerView
         moviesAdapter = MediaAdapter { movie ->
             // Handle movie item click
         }
         binding.moviesRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.moviesRecyclerView.adapter = moviesAdapter
+        setupPaginationForRecyclerView(binding.moviesRecyclerView, MediaType.MOVIES)
 
-        tvShowsAdapter = MediaAdapter { movie ->
-            // Handle movie item click
+        // Set up TV Shows RecyclerView
+        tvShowsAdapter = MediaAdapter { show ->
+            // Handle show item click
         }
         binding.tvShowsRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.tvShowsRecyclerView.adapter = tvShowsAdapter
+        setupPaginationForRecyclerView(binding.tvShowsRecyclerView, MediaType.TV_SHOWS)
 
-        animeAdapter = MediaAdapter { movie ->
-            // Handle movie item click
+        // Set up Anime RecyclerView
+        animeAdapter = MediaAdapter { anime ->
+            // Handle anime item click
         }
         binding.animeRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.animeRecyclerView.adapter = animeAdapter
+        setupPaginationForRecyclerView(binding.animeRecyclerView, MediaType.ANIME)
     }
+
+    private fun setupPaginationForRecyclerView(recyclerView: RecyclerView, mediaType: MediaType) {
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val totalItemCount = layoutManager.itemCount
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+
+                if (!isLoading && lastVisibleItemPosition == totalItemCount - 1) {
+                    isLoading = true
+                    currentPage++
+                    when (mediaType) {
+                        MediaType.MOVIES -> mediaHandler.fetchPopularMovies(currentPage, moviesAdapter, this@HomeActivity) { onLoadingComplete() }
+                        MediaType.TV_SHOWS -> mediaHandler.fetchPopularTVShows(currentPage, tvShowsAdapter, this@HomeActivity) { onLoadingComplete() }
+                        MediaType.ANIME -> mediaHandler.fetchPopularAnime(currentPage, animeGenreId, animeAdapter, this@HomeActivity) { onLoadingComplete() }
+                    }
+                }
+            }
+        })
+    }
+
 
     private fun fetchAllMedia() {
         isLoading = true
