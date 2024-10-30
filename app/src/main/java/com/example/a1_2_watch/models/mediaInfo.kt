@@ -6,8 +6,7 @@ data class Movie(
     val title: String?,
     val overview: String,
     val poster_path: String?,
-    val vote_average: Double,
-    val runtime : Int
+    val vote_average: Double
 )
 
 data class Show(
@@ -15,8 +14,7 @@ data class Show(
     val name: String?,
     val overview: String,
     val poster_path: String?,
-    val vote_average: Double,
-    val episode_run_time : List<Int>
+    val vote_average: Double
 )
 
 data class Anime(

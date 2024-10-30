@@ -9,6 +9,7 @@ import com.example.a1_2_watch.models.Movie
 import com.example.a1_2_watch.models.Show
 import com.example.a1_2_watch.models.Anime
 import com.example.a1_2_watch.utils.Constants
+import java.util.Locale
 
 class MediaAdapter<T>(
     private val onItemClick: (T) -> Unit,
@@ -53,32 +54,40 @@ class MediaAdapter<T>(
             val mediaTitle: String?
             val mediaRating: String?
             val posterPath: String?
+            val runtime: String?
 
             when (mediaItem) {
                 is Movie -> {
                     mediaTitle = mediaItem.title ?: "No Title Available"
-                    mediaRating = "Rating: ${mediaItem.vote_average}"
+                    mediaRating  = String.format(Locale.getDefault(), "%.1f", mediaItem.vote_average)
                     posterPath = Constants.IMAGE_URL + mediaItem.poster_path
                 }
                 is Show -> {
                     mediaTitle = mediaItem.name ?: "No Title Available"
-                    mediaRating = "Rating: ${mediaItem.vote_average}"
+                    mediaRating = String.format(Locale.getDefault(), "%.1f", mediaItem.vote_average)
                     posterPath = Constants.IMAGE_URL + mediaItem.poster_path
                 }
                 is Anime -> {
                     mediaTitle = mediaItem.attributes.canonicalTitle
-                    mediaRating = "Rating: ${mediaItem.attributes.averageRating}"
-                    posterPath = mediaItem.attributes.posterImage?.large
+                    mediaRating = if (mediaItem.attributes.averageRating > 0.toString()) {
+                        // Divide the average rating by 10 and format to one decimal place
+                        String.format(Locale.getDefault(), "%.1f", mediaItem.attributes.averageRating.toFloat() / 10)
+                    } else {
+                        "N/A"
+                    }
+                    posterPath = mediaItem.attributes.posterImage?.medium
                 }
                 else -> {
                     mediaTitle = "No Title Available"
-                    mediaRating = "Rating: N/A"
+                    mediaRating = "N/A"
                     posterPath = null
+                    runtime = "Runtime: N/A"
                 }
             }
 
             binding.mediaTitleTextView.text = mediaTitle
             binding.mediaRatingTextView.text = mediaRating
+
             Glide.with(binding.root.context)
                 .load(posterPath ?: "")
                 .into(binding.mediaImageView)
