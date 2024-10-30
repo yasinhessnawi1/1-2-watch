@@ -13,6 +13,7 @@ import com.example.a1_2_watch.models.Show
 import com.example.a1_2_watch.models.Anime
 import com.example.a1_2_watch.models.MediaType
 import com.example.a1_2_watch.repository.MediaHandler
+import com.example.a1_2_watch.utils.NavigationUtils
 
 class HomeActivity : AppCompatActivity() {
 
@@ -40,6 +41,7 @@ class HomeActivity : AppCompatActivity() {
         moviesAdapter = MediaAdapter(
             onItemClick = { movie ->
                 // Handle movie item click
+                NavigationUtils.navigateToDetails(this, movie.id, MediaType.MOVIES.name)
             },
             onSaveClick = { movie ->
                 Toast.makeText(this, "Saved ${movie.title}", Toast.LENGTH_SHORT).show()
@@ -53,6 +55,8 @@ class HomeActivity : AppCompatActivity() {
         tvShowsAdapter = MediaAdapter(
             onItemClick = { show ->
                 // Handle show item click
+                NavigationUtils.navigateToDetails(this, show.id, MediaType.TV_SHOWS.name)
+
             },
             onSaveClick = { show ->
                 Toast.makeText(this, "Saved ${show.name}", Toast.LENGTH_SHORT).show()
@@ -66,6 +70,7 @@ class HomeActivity : AppCompatActivity() {
         animeAdapter = MediaAdapter(
             onItemClick = { anime ->
                 // Handle anime item click
+                NavigationUtils.navigateToDetails(this, anime.id, MediaType.ANIME.name)
             },
             onSaveClick = { anime ->
                 Toast.makeText(this, "Saved ${anime.attributes.canonicalTitle}", Toast.LENGTH_SHORT).show()

@@ -2,72 +2,71 @@ package com.example.a1_2_watch.models
 
 data class MovieDetails(
     val adult: Boolean,
-    val backdropPath: String?,
-    val belongsToCollection: Any?,
+    val backdrop_path: String?,
+    val belongs_to_collection: Any?,
     val budget: Int,
     val genres: List<Genre>,
     val homepage: String?,
     val id: Int,
-    val imdbId: String?,
-    val originCountry: List<String>,
-    val originalLanguage: String,
-    val originalTitle: String,
+    val imdb_id: String?,
+    val original_language: String,
+    val original_title: String,
     val overview: String?,
     val popularity: Double,
-    val posterPath: String?,
-    val releaseDate: String,
+    val poster_path: String?,
+    val release_date: String,
     val revenue: Int,
     val runtime: Int,
     val status: String,
     val tagline: String?,
     val title: String,
     val video: Boolean,
-    val voteAverage: Double,
-    val voteCount: Int
+    val vote_average: Double,
+    val vote_count: Int
 )
-
 
 data class ShowDetails(
     val adult: Boolean,
-    val backdropPath: String?,
-    val createdBy: List<Creator>,
-    val episodeRunTime: List<Int>,
-    val firstAirDate: String,
+    val backdrop_path: String?,
+    val created_by: List<Creator>,
+    val episode_run_time: List<Int>,
+    val first_air_date: String,
     val genres: List<Genre>,
     val id: Int,
-    val inProduction: Boolean,
-    val lastAirDate: String,
-    val lastEpisodeToAir: LastEpisodeToAir?,
+    val in_production: Boolean,
+    val last_air_date: String?,
+    val last_episode_to_air: LastEpisodeToAir?,
     val name: String,
-    val nextEpisodeToAir: Any?,
-    val numberOfEpisodes: Int,
-    val numberOfSeasons: Int,
+    val next_episode_to_air: Any?,
+    val number_of_episodes: Int,
+    val number_of_seasons: Int,
     val overview: String?,
     val popularity: Double,
-    val posterPath: String?,
+    val poster_path: String?,
     val seasons: List<Season>,
     val status: String,
     val tagline: String?,
-    val voteAverage: Double,
-    val voteCount: Int
+    val vote_average: Double,
+    val vote_count: Int
 )
+
 data class AnimeDetails(
-    val id: String,
-    val type: String,
-    val links: Links,
-    val attributes: Attributes,
-    val relationships: Relationships
+    val data: AnimeData?
 )
 
-
-
+data class AnimeData(
+    val id: String?,
+    val type: String?,
+    val links: Links?,
+    val attributes: Attributes?
+)
 
 data class Attributes(
     val createdAt: String,
     val updatedAt: String,
     val slug: String,
-    val synopsis: String,
-    val description: String,
+    val synopsis: String?,
+    val description: String?,
     val coverImageTopOffset: Int,
     val titles: Titles,
     val canonicalTitle: String,
@@ -76,49 +75,38 @@ data class Attributes(
     val ratingFrequencies: Map<String, String>,
     val userCount: Int,
     val favoritesCount: Int,
-    val startDate: String,
+    val startDate: String?,
     val endDate: String?,
-    val nextRelease: Any?,
     val popularityRank: Int,
     val ratingRank: Int,
-    val ageRating: String,
-    val ageRatingGuide: String,
+    val ageRating: String?,
+    val ageRatingGuide: String?,
     val subtype: String,
     val status: String,
-    val tba: Any?,
     val posterImage: PosterImage?,
-    val coverImage: CoverImage?,
-    val episodeCount: Int,
-    val episodeLength: Int,
-    val totalLength: Int,
-    val youtubeVideoId: String?,
-    val showType: String,
-    val nsfw: Boolean
+    val coverImage: CoverImage?
 )
 
 data class Titles(
-    val en: String,
-    val enJp: String,
-    val jaJp: String
+    val en: String?,
+    val enJp: String?,
+    val jaJp: String?
 )
 
 data class PosterImage(
-    val tiny: String,
-    val large: String,
-    val small: String,
-    val medium: String,
-    val original: String,
+    val tiny: String?,
+    val large: String?,
+    val small: String?,
+    val medium: String?,
+    val original: String?
 )
 
 data class CoverImage(
-    val tiny: String,
-    val large: String,
-    val small: String,
-    val original: String,
+    val tiny: String?,
+    val large: String?,
+    val small: String?,
+    val original: String?
 )
-
-
-
 
 data class Relationships(
     val genres: RelationshipLinks,
