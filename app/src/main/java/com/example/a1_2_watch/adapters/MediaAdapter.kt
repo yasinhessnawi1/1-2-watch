@@ -4,55 +4,85 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.a1_2_watch.moduls.Movie
 import com.example.a1_2_watch.databinding.MediaItemLayoutBinding
+import com.example.a1_2_watch.models.Movie
+import com.example.a1_2_watch.models.Show
+import com.example.a1_2_watch.models.Anime
+import com.example.a1_2_watch.utils.Constants
 
-class MediaAdapter(
-    private val onItemClick: (Movie) -> Unit,
-    private val onSaveClick: (Movie) -> Unit
-) : RecyclerView.Adapter<MediaAdapter.MovieViewHolder>() {
+class MediaAdapter<T>(
+    private val onItemClick: (T) -> Unit,
+    private val onSaveClick: (T) -> Unit
+) : RecyclerView.Adapter<MediaAdapter<T>.MediaViewHolder>() {
 
-    private var movies: MutableList<Movie> = mutableListOf()
+    private var mediaList: MutableList<T> = mutableListOf()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
         val binding = MediaItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return MovieViewHolder(binding)
+        return MediaViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
-        val movie = movies[position]
-        holder.bind(movie)
+    override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
+        val mediaItem = mediaList[position]
+        holder.bind(mediaItem)
         holder.itemView.setOnClickListener {
-            onItemClick(movie)
+            onItemClick(mediaItem)
         }
         // Handle Save Button Click
         holder.binding.saveButton.setOnClickListener {
-            onSaveClick(movie)
+            onSaveClick(mediaItem)
         }
     }
 
-    override fun getItemCount(): Int = movies.size
+    override fun getItemCount(): Int = mediaList.size
 
-    fun setMovies(movieList: List<Movie>) {
-        this.movies.clear()
-        this.movies.addAll(movieList)
+    fun setMediaList(mediaItems: List<T>) {
+        this.mediaList.clear()
+        this.mediaList.addAll(mediaItems)
         notifyDataSetChanged()
     }
 
-    fun addMovies(movieList: List<Movie>) {
-        val startPosition = movies.size
-        movies.addAll(movieList)
-        notifyItemRangeInserted(startPosition, movieList.size)
+    fun addMediaItems(mediaItems: List<T>) {
+        val startPosition = mediaList.size
+        mediaList.addAll(mediaItems)
+        notifyItemRangeInserted(startPosition, mediaItems.size)
     }
 
-    class MovieViewHolder(val binding: MediaItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(movie: Movie) {
-            val mediaTitle = movie.title ?: movie.name ?: "No Title Available"
+    inner class MediaViewHolder(val binding: MediaItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(mediaItem: T) {
+            val mediaTitle: String?
+            val mediaRating: String?
+            val posterPath: String?
+
+            when (mediaItem) {
+                is Movie -> {
+                    mediaTitle = mediaItem.title ?: "No Title Available"
+                    mediaRating = "Rating: ${mediaItem.vote_average}"
+                    posterPath = Constants.IMAGE_URL + mediaItem.poster_path
+                }
+                is Show -> {
+                    mediaTitle = mediaItem.name ?: "No Title Available"
+                    mediaRating = "Rating: ${mediaItem.vote_average}"
+                    posterPath = Constants.IMAGE_URL + mediaItem.poster_path
+                }
+                is Anime -> {
+                    mediaTitle = mediaItem.attributes.canonicalTitle
+                    mediaRating = "Rating: ${mediaItem.attributes.averageRating}"
+                    posterPath = mediaItem.attributes.posterImage?.large
+                }
+                else -> {
+                    mediaTitle = "No Title Available"
+                    mediaRating = "Rating: N/A"
+                    posterPath = null
+                }
+            }
+
             binding.mediaTitleTextView.text = mediaTitle
-            binding.mediaRatingTextView.text = "Rating: ${movie.vote_average}"
+            binding.mediaRatingTextView.text = mediaRating
             Glide.with(binding.root.context)
-                .load("https://image.tmdb.org/t/p/original/${movie.poster_path}")
+                .load(posterPath ?: "")
                 .into(binding.mediaImageView)
         }
     }
 }
+
