@@ -5,12 +5,14 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
-    private const val BASE_URL = Constants.BASE_URL
+    fun getApiClient(baseUrl: String = Constants.TMDB_URL): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 
-    val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-    val apiService: ApiService = retrofit.create(ApiService::class.java)
+    fun getApiService(baseUrl: String = Constants.TMDB_URL): ApiService {
+        return getApiClient(baseUrl).create(ApiService::class.java)
+    }
 }

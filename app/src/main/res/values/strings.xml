@@ -3,4 +3,13 @@
     <string name="user">User</string>
     <string name="discover">Discover</string>
     <string name="home">Home</string>
+    <string name="rating">Rating</string>
+    <string name="movie_title">Movie Title</string>
+    <string name="_0_0">0.0</string>
+    <string name="save">Save</string>
+    <string name="media_item_poster_image">media item poster image</string>
+    <string name="popular_anime">Popular Anime: </string>
+    <string name="now_airing_tv_shows">Now Airing TV Shows: </string>
+    <string name="latest_movies">Latest Movies: </string>
+    <string name="play_icon">play_icon</string>
 </resources>
