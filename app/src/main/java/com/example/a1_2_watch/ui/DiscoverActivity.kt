@@ -34,6 +34,7 @@ class DiscoverActivity : AppCompatActivity() {
             finish()
         }
 
+
         setupRecyclerView()
         setupSearchView()
         setupBottomNavigation()
