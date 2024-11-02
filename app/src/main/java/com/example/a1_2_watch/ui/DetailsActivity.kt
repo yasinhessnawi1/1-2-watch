@@ -50,6 +50,10 @@ class DetailsActivity : AppCompatActivity() {
                     NavigationUtils.navigateToHome(this)
                     true
                 }
+                R.id.user -> {
+                    NavigationUtils.navigateToUser(this)
+                    true
+                }
                 R.id.discover -> true
                 else -> false
             }
