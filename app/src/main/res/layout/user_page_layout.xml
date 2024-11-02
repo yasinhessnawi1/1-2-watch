@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Go Back Button -->
+    <ImageButton
+        android:id="@+id/goBackButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_arrow_back"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/go_back"
+        android:layout_margin="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/goBackButton"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- Title for Liked Movies -->
+            <TextView
+                android:id="@+id/likedMoviesTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/liked_movies"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- Empty Message for Liked Movies -->
+            <TextView
+                android:id="@+id/emptyMoviesTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/empty_movies_list"
+                android:textSize="18sp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/likedMoviesTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="8dp" />
+
+            <!-- RecyclerView for Liked Movies -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/likedMoviesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/emptyMoviesTextView" />
+
+            <!-- Title for Liked TV Shows -->
+            <TextView
+                android:id="@+id/likedTvShowsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/liked_tv_shows"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/likedMoviesRecyclerView" />
+
+            <!-- Empty Message for Liked TV Shows -->
+            <TextView
+                android:id="@+id/emptyTvShowsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/empty_tv_shows_list"
+                android:textSize="18sp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/likedTvShowsTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="8dp" />
+
+            <!-- RecyclerView for Liked TV Shows -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/likedTvShowsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/emptyTvShowsTextView" />
+
+            <!-- Title for Liked Anime -->
+            <TextView
+                android:id="@+id/likedAnimeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/liked_anime"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/likedTvShowsRecyclerView" />
+
+            <!-- Empty Message for Liked Anime -->
+            <TextView
+                android:id="@+id/emptyAnimeTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/empty_anime_list"
+                android:textSize="18sp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/likedAnimeTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="8dp" />
+
+            <!-- RecyclerView for Liked Anime -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/likedAnimeRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/emptyAnimeTextView" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <!-- Bottom Navigation View -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/windowBackground"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:menu="@menu/bottom_navigation_bar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
