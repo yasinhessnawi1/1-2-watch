@@ -1,5 +1,6 @@
 package com.example.a1_2_watch.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -54,7 +55,11 @@ class DetailsActivity : AppCompatActivity() {
                     NavigationUtils.navigateToUser(this)
                     true
                 }
-                R.id.discover -> true
+                R.id.discover -> {
+                    val intent = Intent(this, DiscoverActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
                 else -> false
             }
         }

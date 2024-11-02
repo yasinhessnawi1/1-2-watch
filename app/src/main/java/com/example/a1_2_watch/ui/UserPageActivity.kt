@@ -1,6 +1,7 @@
 package com.example.a1_2_watch.ui
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -203,7 +204,8 @@ class UserPageActivity : AppCompatActivity() {
                 }
                 R.id.user -> true
                 R.id.discover -> {
-                    // Navigate to Discover Page if needed
+                    val intent = Intent(this, DiscoverActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 else -> false

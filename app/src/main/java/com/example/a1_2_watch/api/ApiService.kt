@@ -53,4 +53,16 @@ interface ApiService {
     @GET("streaming-links/{streaming_link_id}/streamer")
     fun getStreamerDetails(@Path("streaming_link_id") linkId: String): Call<StreamerDetailsResponse>
 
+    // Movie search endpoint
+    @GET("search/movie")
+    fun searchMovies(@Query("api_key") apiKey: String, @Query("query") query: String): Call<MovieResponse>
+
+    // TV show search endpoint
+    @GET("search/tv")
+    fun searchTVShows(@Query("api_key") apiKey: String, @Query("query") query: String): Call<ShowResponse>
+
+    // Anime search endpoint (Kitsu)
+    @GET("anime")
+    fun searchAnime(@Query("filter[text]") query: String): Call<AnimeResponse>
+
 }

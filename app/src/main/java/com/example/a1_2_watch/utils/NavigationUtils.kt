@@ -3,6 +3,7 @@ package com.example.a1_2_watch.utils
 import android.app.Activity
 import android.content.Intent
 import com.example.a1_2_watch.ui.DetailsActivity
+import com.example.a1_2_watch.ui.DiscoverActivity
 import com.example.a1_2_watch.ui.HomeActivity
 import com.example.a1_2_watch.ui.UserPageActivity
 
@@ -20,8 +21,15 @@ object NavigationUtils {
         activity.startActivity(intent)
         activity.finish()
     }
+
     fun navigateToUser(activity: Activity) {
         val intent = Intent(activity, UserPageActivity::class.java)
+        activity.startActivity(intent)
+        activity.finish()
+    }
+
+    fun navigateToDiscover(activity: Activity) {
+        val intent = Intent(activity, DiscoverActivity::class.java)
         activity.startActivity(intent)
         activity.finish()
     }

@@ -223,7 +223,11 @@ class HomeActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
-                R.id.discover -> true
+                R.id.discover -> {
+                    val intent = Intent(this, DiscoverActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
                 else -> false
             }
         }
