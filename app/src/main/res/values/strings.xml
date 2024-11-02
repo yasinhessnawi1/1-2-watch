@@ -12,4 +12,13 @@
     <string name="now_airing_tv_shows">Now Airing TV Shows: </string>
     <string name="latest_movies">Latest Movies: </string>
     <string name="play_icon">play_icon</string>
+    <string name="liked_movies">Movies you follow</string>
+    <string name="liked_tv_shows">Tv shows you follow</string>
+    <string name="liked_anime">Anime you follow</string>
+    <string name="user_page">user\n</string>
+    <string name="go_back">Go back\n</string>
+    <string name="empty_movies_list">You didn\'t like any Movie yet, please like a Movie and it will appear here.</string>
+    <string name="empty_tv_shows_list">You didn\'t like any tv show yet, please like a TV Show and they will appear here.</string>
+    <string name="empty_anime_list">You didn\'t like any Anime yet, please give an Anime a like and they will appear here.</string>
+    <string name="more_info">more information\n</string>
 </resources>

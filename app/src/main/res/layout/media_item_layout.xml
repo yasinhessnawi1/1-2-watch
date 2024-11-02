@@ -83,16 +83,58 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- TextView for movie title -->
-    <TextView
-        android:id="@+id/mediaTitleTextView"
-        android:layout_width="wrap_content"
+    <!-- Title and dropdown arrow -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:layout_marginEnd="4dp"
-        android:layout_gravity="center"
-        android:text="@string/movie_title"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- TextView for movie title -->
+        <TextView
+            android:id="@+id/mediaTitleTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginBottom="4dp"
+            android:layout_marginEnd="4dp"
+            android:text="@string/movie_title"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- Expand dropdown button -->
+        <ImageButton
+            android:id="@+id/expandButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/more_info"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_expand_arrow" />
+    </LinearLayout>
+
+    <!-- Expandable Details Section -->
+    <LinearLayout
+        android:id="@+id/expandableDetailsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/releaseDateTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Release Date: " />
+
+        <TextView
+            android:id="@+id/nextEpisodeCountdownTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Next Episode in: " />
+
+        <!-- Add more fields as required for detailed information -->
+    </LinearLayout>
 
 </LinearLayout>

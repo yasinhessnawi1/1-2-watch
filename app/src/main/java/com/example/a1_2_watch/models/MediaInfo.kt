@@ -6,7 +6,8 @@ data class Movie(
     val title: String?,
     val overview: String,
     val poster_path: String?,
-    val vote_average: Double
+    val vote_average: Double,
+    var isLiked: Boolean = false
 )
 
 data class Show(
@@ -14,11 +15,14 @@ data class Show(
     val name: String?,
     val overview: String,
     val poster_path: String?,
-    val vote_average: Double
+    val vote_average: Double,
+    var isLiked: Boolean = false
+
 )
 
 data class Anime(
     val id: Int,
-    val attributes: Attributes
+    val attributes: Attributes,
+    var isLiked: Boolean = false
 )
 
