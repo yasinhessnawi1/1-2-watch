@@ -93,7 +93,8 @@ class MediaHandler {
     suspend fun fetchPopularAnime(page: Int, limit: Int): List<Anime> {
         return withContext(Dispatchers.IO) {
             suspendCancellableCoroutine { continuation ->
-                val call = ApiClient.getApiService(KITSU_URL).getPopularAnimeKitsu(limit, page * limit)
+                val call =
+                    ApiClient.getApiService(KITSU_URL).getPopularAnimeKitsu(limit, page * limit)
                 call.enqueue(object : Callback<AnimeResponse> {
                     override fun onResponse(
                         call: Call<AnimeResponse>,

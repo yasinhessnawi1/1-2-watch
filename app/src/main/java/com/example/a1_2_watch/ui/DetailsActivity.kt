@@ -56,8 +56,7 @@ class DetailsActivity : AppCompatActivity() {
                     true
                 }
                 R.id.discover -> {
-                    val intent = Intent(this, DiscoverActivity::class.java)
-                    startActivity(intent)
+                    NavigationUtils.navigateToDiscover(this)
                     true
                 }
                 else -> false

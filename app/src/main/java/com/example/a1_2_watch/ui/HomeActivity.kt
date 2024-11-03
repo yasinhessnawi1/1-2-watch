@@ -124,9 +124,11 @@ class HomeActivity : AppCompatActivity() {
                         MediaType.MOVIES -> {
                             fetchMovies()
                         }
+
                         MediaType.TV_SHOWS -> {
                             fetchTVShows()
                         }
+
                         MediaType.ANIME -> {
                             fetchAnime()
                         }
@@ -219,15 +221,15 @@ class HomeActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.home -> true
                 R.id.user -> {
-                    val intent = Intent(this, UserPageActivity::class.java)
-                    startActivity(intent)
+                    NavigationUtils.navigateToUser(this)
                     true
                 }
+
                 R.id.discover -> {
-                    val intent = Intent(this, DiscoverActivity::class.java)
-                    startActivity(intent)
+                    NavigationUtils.navigateToDiscover(this)
                     true
                 }
+
                 else -> false
             }
         }
@@ -243,7 +245,10 @@ class HomeActivity : AppCompatActivity() {
                 is Movie -> {
                     val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
                     val likedMovies: MutableList<Movie> =
-                        gson.fromJson(likedMoviesJson, object : TypeToken<MutableList<Movie>>() {}.type)
+                        gson.fromJson(
+                            likedMoviesJson,
+                            object : TypeToken<MutableList<Movie>>() {}.type
+                        )
 
                     val isRemoved = likedMovies.removeIf { it.title == item.title }
                     if (!isRemoved) {
@@ -256,10 +261,14 @@ class HomeActivity : AppCompatActivity() {
                     editor.putString("liked_movies", gson.toJson(likedMovies))
                     editor.apply()
                 }
+
                 is Show -> {
                     val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
                     val likedShows: MutableList<Show> =
-                        gson.fromJson(likedShowsJson, object : TypeToken<MutableList<Show>>() {}.type)
+                        gson.fromJson(
+                            likedShowsJson,
+                            object : TypeToken<MutableList<Show>>() {}.type
+                        )
 
                     val isRemoved = likedShows.removeIf { it.name == item.name }
                     if (!isRemoved) {
@@ -272,12 +281,17 @@ class HomeActivity : AppCompatActivity() {
                     editor.putString("liked_shows", gson.toJson(likedShows))
                     editor.apply()
                 }
+
                 is Anime -> {
                     val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
                     val likedAnime: MutableList<Anime> =
-                        gson.fromJson(likedAnimeJson, object : TypeToken<MutableList<Anime>>() {}.type)
+                        gson.fromJson(
+                            likedAnimeJson,
+                            object : TypeToken<MutableList<Anime>>() {}.type
+                        )
 
-                    val isRemoved = likedAnime.removeIf { it.attributes.canonicalTitle == item.attributes.canonicalTitle }
+                    val isRemoved =
+                        likedAnime.removeIf { it.attributes.canonicalTitle == item.attributes.canonicalTitle }
                     if (!isRemoved) {
                         item.isLiked = true
                         likedAnime.add(item)
@@ -309,7 +323,8 @@ class HomeActivity : AppCompatActivity() {
             // Refresh movies
             val likedMoviesTitles = withContext(Dispatchers.IO) {
                 val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
-                val likedMovies: List<Movie> = gson.fromJson(likedMoviesJson, object : TypeToken<List<Movie>>() {}.type)
+                val likedMovies: List<Movie> =
+                    gson.fromJson(likedMoviesJson, object : TypeToken<List<Movie>>() {}.type)
                 likedMovies.mapNotNull { it.title }
             }
             moviesAdapter.refreshLikedStatus(likedMoviesTitles)
@@ -317,7 +332,8 @@ class HomeActivity : AppCompatActivity() {
             // Refresh TV shows
             val likedShowsNames = withContext(Dispatchers.IO) {
                 val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
-                val likedShows: List<Show> = gson.fromJson(likedShowsJson, object : TypeToken<List<Show>>() {}.type)
+                val likedShows: List<Show> =
+                    gson.fromJson(likedShowsJson, object : TypeToken<List<Show>>() {}.type)
                 likedShows.mapNotNull { it.name }
             }
             tvShowsAdapter.refreshLikedStatus(likedShowsNames)
@@ -325,7 +341,8 @@ class HomeActivity : AppCompatActivity() {
             // Refresh anime
             val likedAnimeTitles = withContext(Dispatchers.IO) {
                 val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
-                val likedAnime: List<Anime> = gson.fromJson(likedAnimeJson, object : TypeToken<List<Anime>>() {}.type)
+                val likedAnime: List<Anime> =
+                    gson.fromJson(likedAnimeJson, object : TypeToken<List<Anime>>() {}.type)
                 likedAnime.map { it.attributes.canonicalTitle }
             }
             animeAdapter.refreshLikedStatus(likedAnimeTitles)
