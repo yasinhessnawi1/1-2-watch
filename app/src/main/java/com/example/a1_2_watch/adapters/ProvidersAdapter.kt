@@ -4,8 +4,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.a1_2_watch.data.Provider
 import com.example.a1_2_watch.databinding.ProviderLayoutBinding
+import com.example.a1_2_watch.models.Provider
 
 class ProvidersAdapter(private var providers: List<Provider>) : RecyclerView.Adapter<ProvidersAdapter.ProviderViewHolder>() {
 
