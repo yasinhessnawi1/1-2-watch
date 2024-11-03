@@ -1,14 +1,14 @@
 package com.example.a1_2_watch.api
 
-import com.example.a1_2_watch.data.AnimeStreamingLinksResponse
-import com.example.a1_2_watch.data.StreamerDetailsResponse
-import com.example.a1_2_watch.data.WatchProvidersResponse
 import com.example.a1_2_watch.models.MovieDetails
 import com.example.a1_2_watch.models.MovieResponse
 import com.example.a1_2_watch.models.AnimeDetails
 import com.example.a1_2_watch.models.AnimeResponse
+import com.example.a1_2_watch.models.AnimeStreamingLinksResponse
 import com.example.a1_2_watch.models.ShowDetails
 import com.example.a1_2_watch.models.ShowResponse
+import com.example.a1_2_watch.models.StreamerDetailsResponse
+import com.example.a1_2_watch.models.WatchProvidersResponse
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path

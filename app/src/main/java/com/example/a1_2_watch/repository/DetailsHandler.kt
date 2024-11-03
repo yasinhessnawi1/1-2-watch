@@ -6,10 +6,10 @@ import android.view.View
 import com.bumptech.glide.Glide
 import com.example.a1_2_watch.adapters.ProvidersAdapter
 import com.example.a1_2_watch.api.ApiClient
-import com.example.a1_2_watch.data.AnimeStreamingLinksResponse
-import com.example.a1_2_watch.data.StreamerDetailsResponse
-import com.example.a1_2_watch.data.StreamingLink
-import com.example.a1_2_watch.data.WatchProvidersResponse
+import com.example.a1_2_watch.models.AnimeStreamingLinksResponse
+import com.example.a1_2_watch.models.StreamerDetailsResponse
+import com.example.a1_2_watch.models.StreamingLink
+import com.example.a1_2_watch.models.WatchProvidersResponse
 import com.example.a1_2_watch.databinding.DetailsLayoutBinding
 import com.example.a1_2_watch.models.AnimeDetails
 import com.example.a1_2_watch.models.MediaType
