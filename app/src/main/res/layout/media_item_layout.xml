@@ -5,20 +5,17 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- FrameLayout for overlaying elements on ImageView -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="250dp"
         android:layout_marginBottom="8dp">
 
-        <!-- CardView for movie poster with rounded corners -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:cardCornerRadius="16dp"
             app:cardElevation="4dp">
 
-            <!-- ImageView for movie poster -->
             <ImageView
                 android:id="@+id/mediaImageView"
                 android:layout_width="match_parent"
@@ -27,7 +24,6 @@
                 android:scaleType="centerCrop" />
         </androidx.cardview.widget.CardView>
 
-        <!-- FrameLayout for Heart Icon with Rounded Background -->
         <FrameLayout
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -47,7 +43,6 @@
                 android:scaleType="centerInside" />
         </FrameLayout>
 
-        <!-- LinearLayout for rating positioned at the top left of the image -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -58,7 +53,6 @@
             android:orientation="horizontal"
             android:padding="4dp">
 
-            <!-- Thumb Up Icon for Rating -->
             <ImageView
                 android:id="@+id/thumbUpIcon"
                 android:layout_width="20dp"
@@ -67,7 +61,6 @@
                 android:contentDescription="@string/rating"
                 android:src="@drawable/ic_thumb_up" />
 
-            <!-- TextView for Rating -->
             <TextView
                 android:id="@+id/mediaRatingTextView"
                 android:layout_width="wrap_content"
@@ -83,14 +76,12 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Title and dropdown arrow -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <!-- TextView for movie title -->
         <TextView
             android:id="@+id/mediaTitleTextView"
             android:layout_width="0dp"
@@ -102,7 +93,6 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
-        <!-- Expand dropdown button -->
         <ImageButton
             android:id="@+id/expandButton"
             android:layout_width="wrap_content"
@@ -113,7 +103,6 @@
             android:src="@drawable/ic_expand_arrow" />
     </LinearLayout>
 
-    <!-- Expandable Details Section -->
     <LinearLayout
         android:id="@+id/expandableDetailsLayout"
         android:layout_width="match_parent"
@@ -134,7 +123,6 @@
             android:layout_height="wrap_content"
             android:text="Next Episode in: " />
 
-        <!-- Add more fields as required for detailed information -->
     </LinearLayout>
 
 </LinearLayout>
