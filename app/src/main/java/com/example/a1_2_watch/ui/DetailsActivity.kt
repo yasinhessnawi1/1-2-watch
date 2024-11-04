@@ -1,24 +1,26 @@
+// DetailsActivity.kt
 package com.example.a1_2_watch.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.a1_2_watch.R
 import com.example.a1_2_watch.adapters.ProvidersAdapter
 import com.example.a1_2_watch.databinding.DetailsLayoutBinding
-import com.example.a1_2_watch.models.MediaType
-import com.example.a1_2_watch.repository.DetailsHandler
+import com.example.a1_2_watch.models.*
+import com.example.a1_2_watch.repository.DetailsRepository
+import com.example.a1_2_watch.utils.Constants
 import com.example.a1_2_watch.utils.NavigationUtils
 
 class DetailsActivity : AppCompatActivity() {
 
     private lateinit var binding: DetailsLayoutBinding
     private lateinit var providersAdapter: ProvidersAdapter
-    private val detailsRepository = DetailsHandler()
+    private val detailsRepository = DetailsRepository()
     private var countryCode = "US"
     private var mediaId: Int = -1
     private lateinit var mediaType: MediaType
@@ -34,8 +36,7 @@ class DetailsActivity : AppCompatActivity() {
         extractMediaDataFromIntent()
 
         if (mediaId != -1) {
-            // Fetch the details based on mediaType and mediaId
-            detailsRepository.fetchDetails(mediaId, mediaType, this, binding)
+            fetchDetails()
         }
 
         setupRegionSpinner()
@@ -44,7 +45,7 @@ class DetailsActivity : AppCompatActivity() {
 
     private fun setupBottomNavigation() {
         val bottomNavigationView = binding.bottomNavigationView
-        bottomNavigationView.menu.setGroupCheckable(0, false, true) // Deselect all items by default
+        bottomNavigationView.menu.setGroupCheckable(0, false, true)
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.home -> {
@@ -71,15 +72,21 @@ class DetailsActivity : AppCompatActivity() {
     }
 
     private fun setupRegionSpinner() {
-        val regions = listOf("US", "NO", "GB", "FR", "DE", "IN", "CA", "AU", "ES", "IT", "JP", "KR", "BR", "NL", "RU", "MX", "SE", "TR")
+        val regions = listOf(
+            "US", "NO", "GB", "FR", "DE", "IN", "CA", "AU",
+            "ES", "IT", "JP", "KR", "BR", "NL", "RU", "MX", "SE", "TR"
+        )
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, regions)
         binding.regionSpinner.adapter = adapter
 
         binding.regionSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>, view: View?, position: Int, id: Long
+            ) {
                 countryCode = regions[position]
-                fetchWatchProviders(mediaId, mediaType) // Ensure mediaType is passed here
+                fetchWatchProviders()
             }
+
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
@@ -90,7 +97,94 @@ class DetailsActivity : AppCompatActivity() {
         binding.providersRecyclerView.adapter = providersAdapter
     }
 
-    private fun fetchWatchProviders(mediaId: Int, mediaType: MediaType) {
-        detailsRepository.fetchWatchProviders(mediaId, mediaType, countryCode, providersAdapter, binding)
+    private fun fetchDetails() {
+        detailsRepository.fetchDetails(mediaId, mediaType) { data ->
+            when (data) {
+                is MovieDetails -> updateMovieDetails(data)
+                is ShowDetails -> updateTVShowDetails(data)
+                is AnimeDetails -> updateAnimeDetails(data)
+                else -> showError()
+            }
+        }
+    }
+
+    private fun updateMovieDetails(movie: MovieDetails) {
+        binding.titleTextView.text = movie.title ?: "No Title Available"
+        binding.descriptionTextView.text = movie.overview ?: "No Overview Available"
+        binding.releaseDateTextView.text = "Release Date: ${movie.release_date ?: "Unknown"}"
+        Glide.with(this)
+            .load("https://image.tmdb.org/t/p/w780/${movie.poster_path}")
+            .into(binding.movieImageView)
+    }
+
+    private fun updateTVShowDetails(tvShow: ShowDetails) {
+        binding.titleTextView.text = tvShow.name ?: "No Title Available"
+        binding.descriptionTextView.text = tvShow.overview ?: "No Overview Available"
+        binding.releaseDateTextView.text = "First Air Date: ${tvShow.first_air_date ?: "Unknown"}"
+        Glide.with(this)
+            .load(Constants.IMAGE_URL + (tvShow.poster_path ?: tvShow.backdrop_path))
+            .into(binding.movieImageView)
+    }
+
+    private fun updateAnimeDetails(animeDetails: AnimeDetails) {
+        val animeData = animeDetails.data
+        val attributes = animeData?.attributes
+        if (attributes != null) {
+            binding.titleTextView.text = attributes.canonicalTitle ?: "No Title Available"
+            binding.descriptionTextView.text = attributes.synopsis ?: "No Overview Available"
+            binding.releaseDateTextView.text = "Start Date: ${attributes.startDate ?: "Unknown"}"
+            attributes.posterImage?.medium?.let { posterUrl ->
+                Glide.with(this).load(posterUrl).into(binding.movieImageView)
+            }
+            fetchStreamingProviders(mediaId.toString())
+        } else {
+            showError()
+        }
+    }
+
+    private fun showError() {
+        binding.titleTextView.text = "No Title Available"
+        binding.descriptionTextView.text = "No Overview Available"
+    }
+
+    private fun fetchStreamingProviders(animeId: String) {
+        detailsRepository.fetchAnimeStreamingLinks(animeId) { streamingLinks ->
+            if (!streamingLinks.isNullOrEmpty()) {
+                for (link in streamingLinks) {
+                    fetchStreamerName(link)
+                }
+            } else {
+                binding.providerNameTextView.text = "No streaming providers available"
+            }
+        }
+    }
+
+    private fun fetchStreamerName(streamingLink: StreamingLink) {
+        val streamerLinkId = streamingLink.id
+        detailsRepository.fetchStreamerDetails(streamerLinkId) { streamerDetailsResponse ->
+            val streamer = streamerDetailsResponse?.data
+            streamer?.attributes?.siteName?.let { siteName ->
+                binding.providerNameTextView.append("Available on: $siteName\n")
+            }
+        }
+    }
+
+    private fun fetchWatchProviders() {
+        detailsRepository.fetchWatchProviders(mediaId, mediaType) { watchProvidersResponse ->
+            if (watchProvidersResponse != null) {
+                val providers = watchProvidersResponse.results[countryCode]
+                if (providers?.flatrate != null && providers.flatrate.isNotEmpty()) {
+                    providersAdapter.updateProviders(providers.flatrate)
+                    binding.noProvidersTextView.visibility = View.GONE
+                } else {
+                    providersAdapter.updateProviders(emptyList())
+                    binding.noProvidersTextView.visibility = View.VISIBLE
+                    binding.noProvidersTextView.text = "No available providers in this region."
+                }
+            } else {
+                binding.noProvidersTextView.visibility = View.VISIBLE
+                binding.noProvidersTextView.text = "Error fetching providers."
+            }
+        }
     }
 }
