@@ -183,7 +183,7 @@ class DetailsActivity : AppCompatActivity() {
                 }
             } else {
                 binding.noProvidersTextView.visibility = View.VISIBLE
-                binding.noProvidersTextView.text = "Error fetching providers."
+                binding.noProvidersTextView.text = ""
             }
         }
     }
