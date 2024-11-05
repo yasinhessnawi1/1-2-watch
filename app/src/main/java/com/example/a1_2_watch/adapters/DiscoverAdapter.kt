@@ -75,7 +75,7 @@ class DiscoverAdapter(
     /**
      * This Inner class that represents individual item view in the RecyclerView.
      *
-     * @param binding The binding object for DiscoverItemLayout, which holds the UI elements.
+     * @param binding The binding object for DiscoverItemLayout, which holds references to UI elements.
      */
     inner class DiscoverViewHolder(private val binding: DiscoverItemLayoutBinding) :
         RecyclerView.ViewHolder(binding.root) {
