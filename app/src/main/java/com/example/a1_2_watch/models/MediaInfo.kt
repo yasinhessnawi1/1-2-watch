@@ -16,6 +16,7 @@ data class Movie(
     val overview: String,
     val poster_path: String?,
     val vote_average: Double,
+    val release_date: String?,
     var isLiked: Boolean = false
 )
 
@@ -35,6 +36,7 @@ data class Show(
     val overview: String,
     val poster_path: String?,
     val vote_average: Double,
+    val first_air_date: String?,
     var isLiked: Boolean = false
 
 )

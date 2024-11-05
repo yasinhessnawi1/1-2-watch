@@ -10,13 +10,13 @@ import com.example.a1_2_watch.databinding.DiscoverLayoutBinding
 import com.example.a1_2_watch.models.Anime
 import com.example.a1_2_watch.models.Movie
 import com.example.a1_2_watch.models.Show
-import com.example.a1_2_watch.repository.DiscoverHandler
+import com.example.a1_2_watch.repository.DiscoverRepository
 import com.example.a1_2_watch.utils.Constants
 import com.example.a1_2_watch.utils.NavigationUtils
 
 class DiscoverActivity : AppCompatActivity() {
     private lateinit var binding: DiscoverLayoutBinding
-    private val searchRepository = DiscoverHandler()
+    private val searchRepository = DiscoverRepository()
     private val discoverAdapter = DiscoverAdapter(onItemClick = { item ->
         handleItemClick(item) // Handle item click based on type
     })

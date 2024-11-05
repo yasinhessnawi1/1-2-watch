@@ -19,7 +19,7 @@ import retrofit2.Response
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class MediaHandler {
+class MediaRepository {
     private val apiKey = Constants.API_KEY
 
     suspend fun fetchPopularMovies(page: Int): List<Movie> {

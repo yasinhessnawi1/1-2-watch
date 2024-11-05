@@ -1,7 +1,6 @@
 package com.example.a1_2_watch.ui
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -11,7 +10,7 @@ import com.example.a1_2_watch.R
 import com.example.a1_2_watch.adapters.MediaAdapter
 import com.example.a1_2_watch.databinding.HomeLayoutBinding
 import com.example.a1_2_watch.models.*
-import com.example.a1_2_watch.repository.MediaHandler
+import com.example.a1_2_watch.repository.MediaRepository
 import com.example.a1_2_watch.utils.NavigationUtils
 import com.example.a1_2_watch.models.MediaType
 import com.google.gson.Gson
@@ -26,7 +25,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var moviesAdapter: MediaAdapter<Movie>
     private lateinit var tvShowsAdapter: MediaAdapter<Show>
     private lateinit var animeAdapter: MediaAdapter<Anime>
-    private val mediaHandler = MediaHandler()
+    private val mediaRepository = MediaRepository()
     private var currentPage = 1
     private var isLoading = false
     private val animeLimit = 20 // Limit for anime items per page
@@ -155,7 +154,7 @@ class HomeActivity : AppCompatActivity() {
                 likedMovies.map { it.title }
             }
 
-            val fetchedMovies = mediaHandler.fetchPopularMovies(currentPage)
+            val fetchedMovies = mediaRepository.fetchPopularMovies(currentPage)
             val updatedMovies = fetchedMovies.map { movie ->
                 movie.isLiked = likedMoviesTitles.contains(movie.title)
                 movie
@@ -177,7 +176,7 @@ class HomeActivity : AppCompatActivity() {
                 likedShows.map { it.name }
             }
 
-            val fetchedShows = mediaHandler.fetchPopularTVShows(currentPage)
+            val fetchedShows = mediaRepository.fetchPopularTVShows(currentPage)
             val updatedShows = fetchedShows.map { show ->
                 show.isLiked = likedShowsNames.contains(show.name)
                 show
@@ -199,7 +198,7 @@ class HomeActivity : AppCompatActivity() {
                 likedAnime.map { it.attributes.canonicalTitle }
             }
 
-            val fetchedAnime = mediaHandler.fetchPopularAnime(currentPage, animeLimit)
+            val fetchedAnime = mediaRepository.fetchPopularAnime(currentPage, animeLimit)
             val updatedAnime = fetchedAnime.map { anime ->
                 anime.isLiked = likedAnimeTitles.contains(anime.attributes.canonicalTitle)
                 anime

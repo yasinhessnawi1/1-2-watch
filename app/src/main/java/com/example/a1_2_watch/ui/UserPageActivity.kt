@@ -65,21 +65,24 @@ class UserPageActivity : AppCompatActivity() {
             onItemClick = { movie ->  NavigationUtils.navigateToDetails(this, movie.id, MediaType.MOVIES.name) },
             onSaveClick = {
                 toggleLikeAndRefresh(it)
-            }
+            },
+            fetchDetailsFromAPI = true
         )
         showsAdapter = MediaAdapter(
             context = context,
             onItemClick = { show ->  NavigationUtils.navigateToDetails(this, show.id, MediaType.TV_SHOWS.name) },
             onSaveClick = {
                 toggleLikeAndRefresh(it)
-            }
+            },
+            fetchDetailsFromAPI = true
         )
         animeAdapter = MediaAdapter(
             context = context,
             onItemClick = { anime ->  NavigationUtils.navigateToDetails(this, anime.id, MediaType.ANIME.name) },
             onSaveClick = {
                 toggleLikeAndRefresh(it)
-            }
+            },
+            fetchDetailsFromAPI = true
         )
 
         binding.likedMoviesRecyclerView.apply {

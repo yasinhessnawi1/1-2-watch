@@ -10,7 +10,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class DiscoverHandler {
+class DiscoverRepository {
 
     // TMDB API for movies and TV shows
     private val tmdbApiService = ApiClient.getApiService(Constants.TMDB_URL)
