@@ -1,3 +1,4 @@
+// DetailsActivity.kt
 package com.example.a1_2_watch.ui
 
 import android.os.Bundle
@@ -29,7 +30,6 @@ class DetailsActivity : AppCompatActivity() {
         binding = DetailsLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize ProvidersAdapter
         providersAdapter = ProvidersAdapter(emptyList())
         setupProvidersRecyclerView()
 
@@ -218,6 +218,27 @@ class DetailsActivity : AppCompatActivity() {
         binding.seasonCountTextView.visibility = View.GONE
         binding.episodeCountTextView.visibility = View.GONE
     }
+    private fun fetchStreamingProviders(animeId: String) {
+        detailsRepository.fetchAnimeStreamingLinks(animeId) { streamingLinks ->
+            if (!streamingLinks.isNullOrEmpty()) {
+                for (link in streamingLinks) {
+                    fetchStreamerName(link)
+                }
+            } else {
+                binding.noProvidersTextView.text = "No streaming providers available"
+            }
+        }
+    }
+
+    private fun fetchStreamerName(streamingLink: StreamingLink) {
+        val streamerLinkId = streamingLink.id
+        detailsRepository.fetchStreamerDetails(streamerLinkId) { streamerDetailsResponse ->
+            val streamer = streamerDetailsResponse?.data
+            streamer?.attributes?.siteName?.let { siteName ->
+                binding.noProvidersTextView.append("Available on: $siteName\n")
+            }
+        }
+    }
 
     private fun fetchWatchProviders() {
         detailsRepository.fetchWatchProviders(mediaId, mediaType) { watchProvidersResponse ->
@@ -237,7 +258,7 @@ class DetailsActivity : AppCompatActivity() {
                     binding.noProvidersTextView.visibility = View.VISIBLE
                     binding.noProvidersTextView.text = getString(R.string.error_fetching_providers)
                 }
-        }
+            }
         }
     }
 }
