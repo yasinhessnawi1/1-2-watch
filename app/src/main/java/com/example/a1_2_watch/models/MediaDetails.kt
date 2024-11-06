@@ -311,7 +311,7 @@ data class Creator(
  * @property overview Summary of the episode.
  * @property voteAverage Average rating for the episode.
  * @property voteCount Total votes for the episode.
- * @property airDate Air date of the episode.
+ * @property air_date Air date of the episode.
  * @property episodeNumber Episode number.
  * @property episodeType Type of episode.
  * @property productionCode Production code for the episode.

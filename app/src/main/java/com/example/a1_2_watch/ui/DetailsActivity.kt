@@ -154,7 +154,7 @@ class DetailsActivity : AppCompatActivity() {
                     fetchStreamerName(link)
                 }
             } else {
-                binding.providerNameTextView.text = "No streaming providers available"
+                binding.noProvidersTextView.text = "No streaming providers available"
             }
         }
     }
@@ -164,7 +164,7 @@ class DetailsActivity : AppCompatActivity() {
         detailsRepository.fetchStreamerDetails(streamerLinkId) { streamerDetailsResponse ->
             val streamer = streamerDetailsResponse?.data
             streamer?.attributes?.siteName?.let { siteName ->
-                binding.providerNameTextView.append("Available on: $siteName\n")
+                binding.noProvidersTextView.append("Available on: $siteName\n")
             }
         }
     }
