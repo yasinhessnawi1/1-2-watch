@@ -1,4 +1,3 @@
-// DetailsActivity.kt
 package com.example.a1_2_watch.ui
 
 import android.os.Bundle
@@ -30,7 +29,9 @@ class DetailsActivity : AppCompatActivity() {
         binding = DetailsLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Initialize ProvidersAdapter
         providersAdapter = ProvidersAdapter(emptyList())
+        setupProvidersRecyclerView()
 
         setupBottomNavigation()
         extractMediaDataFromIntent()
@@ -40,7 +41,6 @@ class DetailsActivity : AppCompatActivity() {
         }
 
         setupRegionSpinner()
-        setupProvidersRecyclerView()
     }
 
     private fun setupBottomNavigation() {
@@ -86,104 +86,157 @@ class DetailsActivity : AppCompatActivity() {
                 countryCode = regions[position]
                 fetchWatchProviders()
             }
-
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
     private fun setupProvidersRecyclerView() {
-        binding.providersRecyclerView.layoutManager = LinearLayoutManager(this)
-        providersAdapter = ProvidersAdapter(emptyList())
+        binding.providersRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.providersRecyclerView.adapter = providersAdapter
     }
 
     private fun fetchDetails() {
         detailsRepository.fetchDetails(mediaId, mediaType) { data ->
-            when (data) {
-                is MovieDetails -> updateMovieDetails(data)
-                is ShowDetails -> updateTVShowDetails(data)
-                is AnimeDetails -> updateAnimeDetails(data)
-                else -> showError()
+            runOnUiThread {
+                when (data) {
+                    is MovieDetails -> updateMovieDetails(data)
+                    is ShowDetails -> updateTVShowDetails(data)
+                    is AnimeDetails -> updateAnimeDetails(data)
+                    else -> showError()
+                }
             }
         }
     }
 
     private fun updateMovieDetails(movie: MovieDetails) {
-        binding.titleTextView.text = movie.title ?: "No Title Available"
-        binding.descriptionTextView.text = movie.overview ?: "No Overview Available"
-        binding.releaseDateTextView.text = "Release Date: ${movie.release_date ?: "Unknown"}"
+        binding.titleTextView.text = movie.title ?: getString(R.string.no_title_available)
+        binding.descriptionTextView.text = movie.overview ?: getString(R.string.no_overview_available)
+        binding.releaseDateTextView.text = "Release Date: ${movie.release_date ?: getString(R.string.unknown)}"
+        binding.runtimeTextView.text = "Runtime: ${movie.runtime?.let { "$it minutes" } ?: getString(R.string.unknown)}"
+        binding.genresTextView.text = "Genres: ${movie.genres?.joinToString(", ") { it.name } ?: getString(R.string.unknown)}"
+        binding.revenueTextView.text = "Revenue: \$${movie.revenue ?: getString(R.string.unknown)}"
+        binding.budgetTextView.text = "Budget: \$${movie.budget ?: getString(R.string.unknown)}"
+
         Glide.with(this)
-            .load("https://image.tmdb.org/t/p/w780/${movie.poster_path}")
+            .load(Constants.IMAGE_URL + movie.poster_path)
+            //.placeholder(R.drawable.ic_placeholder) // Optional: Add a placeholder image
+            //.error(R.drawable.ic_error) // Optional: Add an error image
             .into(binding.movieImageView)
+
+        // Hide Anime-specific and TV Show-specific fields
+        binding.nextReleaseLayout.visibility = View.GONE
+        binding.endDateTextView.visibility = View.GONE
+        binding.seasonCountTextView.visibility = View.GONE
+        binding.episodeCountTextView.visibility = View.GONE
     }
 
     private fun updateTVShowDetails(tvShow: ShowDetails) {
-        binding.titleTextView.text = tvShow.name ?: "No Title Available"
-        binding.descriptionTextView.text = tvShow.overview ?: "No Overview Available"
-        binding.releaseDateTextView.text = "First Air Date: ${tvShow.first_air_date ?: "Unknown"}"
+        binding.titleTextView.text = tvShow.name ?: getString(R.string.no_title_available)
+        binding.descriptionTextView.text = tvShow.overview ?: getString(R.string.no_overview_available)
+        binding.releaseDateTextView.text = "First Air Date: ${tvShow.first_air_date ?: getString(R.string.unknown)}"
+        binding.seasonCountTextView.text = "Seasons: ${tvShow.number_of_seasons ?: getString(R.string.unknown)}"
+        binding.episodeCountTextView.text = "Episodes: ${tvShow.number_of_episodes ?: getString(R.string.unknown)}"
+        binding.runtimeTextView.text = "Runtime: ${tvShow.episode_run_time?.joinToString(", ") { "$it min" } ?: getString(R.string.unknown)}"
+        if(tvShow.status == "Ended"){
+            binding.endDateTextView.text = "Last Air Date: ${tvShow.last_air_date}"
+        }else{
+            binding.nextReleaseTextView.text = "Next Episode to Air: ${tvShow.next_episode_to_air?.name}"
+            binding.nextReleaseDateTextView.text = "When? ${tvShow.next_episode_to_air?.air_date}"
+        }
+
+        binding.genresTextView.text = "Genres: ${tvShow.genres?.joinToString(", ") { it.name } ?: getString(R.string.unknown)}"
+
         Glide.with(this)
             .load(Constants.IMAGE_URL + (tvShow.poster_path ?: tvShow.backdrop_path))
+            //.placeholder(R.drawable.ic_placeholder) // Optional: Add a placeholder image
+            //.error(R.drawable.ic_error) // Optional: Add an error image
             .into(binding.movieImageView)
+
+        // Hide Anime-specific and Movie-specific fields
+        binding.nextReleaseLayout.visibility = View.GONE
+        binding.endDateTextView.visibility = View.GONE
+        binding.revenueTextView.visibility = View.GONE
+        binding.budgetTextView.visibility = View.GONE
     }
 
     private fun updateAnimeDetails(animeDetails: AnimeDetails) {
         val animeData = animeDetails.data
         val attributes = animeData?.attributes
         if (attributes != null) {
-            binding.titleTextView.text = attributes.canonicalTitle ?: "No Title Available"
-            binding.descriptionTextView.text = attributes.synopsis ?: "No Overview Available"
-            binding.releaseDateTextView.text = "Start Date: ${attributes.startDate ?: "Unknown"}"
-            attributes.posterImage?.medium?.let { posterUrl ->
-                Glide.with(this).load(posterUrl).into(binding.movieImageView)
+            binding.titleTextView.text = attributes.canonicalTitle ?: getString(R.string.no_title_available)
+            binding.descriptionTextView.text = attributes.synopsis ?: getString(R.string.no_overview_available)
+            binding.releaseDateTextView.text = "Start Date: ${attributes.startDate ?: getString(R.string.unknown)}"
+            binding.endDateTextView.text = "End Date: ${attributes.startDate ?: getString(R.string.unknown)}"
+            //binding.genresTextView.text = "Genres: ${attributes.genres?.joinToString(", ") { it.name } ?: getString(R.string.unknown)}"
+            binding.seasonCountTextView.text = "Runtime : ${attributes.episodeLength}"
+            binding.episodeCountTextView.text = "Episodes: ${attributes.episodeCount ?: getString(R.string.unknown)}"
+            if(attributes.endDate != null){
+                binding.endDateTextView.text = "Last Air Date: ${attributes.endDate}"
+            }else {
+                binding.
+                nextReleaseDateTextView.text =
+                    "Next episode: ${attributes.nextRelease}"
             }
-            fetchStreamingProviders(mediaId.toString())
+            Glide.with(this)
+                .load(attributes.posterImage?.medium)
+                //.placeholder(R.drawable.ic_placeholder) // Optional: Add a placeholder image
+                //.error(R.drawable.ic_error) // Optional: Add an error image
+                .into(binding.movieImageView)
+
+            // Update Next Release Info
+            if (attributes.nextRelease != null) {
+                binding.nextReleaseLayout.visibility = View.VISIBLE
+                binding.nextReleaseTextView.text = "Next Release:"
+                binding.nextReleaseDateTextView.text = attributes.nextRelease
+                // Optionally, set an image or animation for sandClockView
+                binding.sandClockView.setImageResource(R.drawable.sand_clock) // Ensure you have this drawable
+            } else {
+                binding.nextReleaseLayout.visibility = View.GONE
+            }
+
+            // Hide Movie-specific and TV Show-specific fields
+            binding.endDateTextView.visibility = View.GONE
+            binding.runtimeTextView.visibility = View.GONE
+            binding.revenueTextView.visibility = View.GONE
+            binding.budgetTextView.visibility = View.GONE
         } else {
             showError()
         }
     }
 
     private fun showError() {
-        binding.titleTextView.text = "No Title Available"
-        binding.descriptionTextView.text = "No Overview Available"
-    }
-
-    private fun fetchStreamingProviders(animeId: String) {
-        detailsRepository.fetchAnimeStreamingLinks(animeId) { streamingLinks ->
-            if (!streamingLinks.isNullOrEmpty()) {
-                for (link in streamingLinks) {
-                    fetchStreamerName(link)
-                }
-            } else {
-                binding.providerNameTextView.text = "No streaming providers available"
-            }
-        }
-    }
-
-    private fun fetchStreamerName(streamingLink: StreamingLink) {
-        val streamerLinkId = streamingLink.id
-        detailsRepository.fetchStreamerDetails(streamerLinkId) { streamerDetailsResponse ->
-            val streamer = streamerDetailsResponse?.data
-            streamer?.attributes?.siteName?.let { siteName ->
-                binding.providerNameTextView.append("Available on: $siteName\n")
-            }
-        }
+        binding.titleTextView.text = getString(R.string.no_title_available)
+        binding.descriptionTextView.text = getString(R.string.no_overview_available)
+        // Hide all other details
+        binding.releaseDateTextView.visibility = View.GONE
+        binding.nextReleaseLayout.visibility = View.GONE
+        binding.endDateTextView.visibility = View.GONE
+        binding.runtimeTextView.visibility = View.GONE
+        binding.genresTextView.visibility = View.GONE
+        binding.revenueTextView.visibility = View.GONE
+        binding.budgetTextView.visibility = View.GONE
+        binding.seasonCountTextView.visibility = View.GONE
+        binding.episodeCountTextView.visibility = View.GONE
     }
 
     private fun fetchWatchProviders() {
         detailsRepository.fetchWatchProviders(mediaId, mediaType) { watchProvidersResponse ->
-            if (watchProvidersResponse != null) {
-                val providers = watchProvidersResponse.results[countryCode]
-                if (providers?.flatrate != null && providers.flatrate.isNotEmpty()) {
-                    providersAdapter.updateProviders(providers.flatrate)
-                    binding.noProvidersTextView.visibility = View.GONE
+            runOnUiThread {
+                if (watchProvidersResponse != null) {
+                    val providers = watchProvidersResponse.results[countryCode]
+                    if (providers?.flatrate != null && providers.flatrate.isNotEmpty()) {
+                        providersAdapter.updateProviders(providers.flatrate)
+                        binding.noProvidersTextView.visibility = View.GONE
+                    } else {
+                        providersAdapter.updateProviders(emptyList())
+                        binding.noProvidersTextView.visibility = View.VISIBLE
+                        binding.noProvidersTextView.text = getString(R.string.no_providers_available)
+                    }
                 } else {
                     providersAdapter.updateProviders(emptyList())
                     binding.noProvidersTextView.visibility = View.VISIBLE
-                    binding.noProvidersTextView.text = "No available providers in this region."
+                    binding.noProvidersTextView.text = getString(R.string.error_fetching_providers)
                 }
-            } else {
-                binding.noProvidersTextView.visibility = View.VISIBLE
-                binding.noProvidersTextView.text = "Error fetching providers."
             }
         }
     }
