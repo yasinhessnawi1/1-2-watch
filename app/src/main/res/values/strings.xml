@@ -27,4 +27,14 @@
     <string name="unknown">Unknown</string>
     <string name="no_providers_available">No providers available in this region.</string>
     <string name="error_fetching_providers">Error fetching providers.</string>
+    <string name="release_date">Release Date: %1$s</string>
+    <string name="description">Description: \n %1$s</string>
+    <string name="release_date_n_a">Release Date: N/A</string>
+    <string name="no_description">No Description</string>
+    <string name="first_air_date">First Air Date: %1$s</string>
+    <string name="last_air_date">Last Air Date: %1$s</string>
+    <string name="next_episode_to_air">Next Episode to Air: %1$s</string>
+    <string name="first_air_date_n_a">First Air Date: N/A</string>
+    <string name="next_episode">Next episode: %1$s</string>
+    <string name="start_date_n_a">Start Date: N/A</string>
 </resources>
