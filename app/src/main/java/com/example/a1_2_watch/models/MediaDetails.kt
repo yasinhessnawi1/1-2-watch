@@ -29,18 +29,17 @@ package com.example.a1_2_watch.models
 data class MovieDetails(
     val adult: Boolean,
     val backdrop_path: String?,
+    val poster_path: String?,
+    val release_date: String,
     val belongs_to_collection: Any?,
     val budget: Int,
     val genres: List<Genre>,
-    val homepage: String?,
     val id: Int,
     val imdb_id: String?,
     val original_language: String,
     val original_title: String,
     val overview: String?,
     val popularity: Double,
-    val poster_path: String?,
-    val release_date: String,
     val revenue: Int,
     val runtime: Int,
     val status: String,
@@ -177,7 +176,10 @@ data class Attributes(
     val subtype: String,
     val status: String,
     val posterImage: PosterImage?,
-    val coverImage: CoverImage?
+    val coverImage: CoverImage?,
+    val episodeCount: String?,
+    val episodeLength: Int
+
 )
 
 /**
@@ -309,7 +311,7 @@ data class Creator(
  * @property overview Summary of the episode.
  * @property voteAverage Average rating for the episode.
  * @property voteCount Total votes for the episode.
- * @property airDate Air date of the episode.
+ * @property air_date Air date of the episode.
  * @property episodeNumber Episode number.
  * @property episodeType Type of episode.
  * @property productionCode Production code for the episode.

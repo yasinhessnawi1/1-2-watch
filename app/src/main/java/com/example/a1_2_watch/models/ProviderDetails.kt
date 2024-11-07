@@ -8,7 +8,7 @@ package com.example.a1_2_watch.models
  */
 data class Provider(
     val provider_name: String,
-    val logo_path: String,
+    val logo_path: String?,
 )
 
 /**

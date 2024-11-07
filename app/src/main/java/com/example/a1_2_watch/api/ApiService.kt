@@ -66,7 +66,7 @@ interface ApiService {
      * @param offset The offset for pagination.
      * @return A [Call] object with the response containing a list of popular anime.
      */
-    @GET("anime")
+    @GET("anime/?sort=ratingRank")
     fun getPopularAnimeKitsu(@Query("page[limit]") limit: Int, @Query("page[offset]") offset: Int): Call<AnimeResponse>
 
     /**

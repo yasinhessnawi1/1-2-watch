@@ -19,36 +19,57 @@ import retrofit2.Response
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+/**
+ * MediaRepository class responsible for fetching popular media items (movie, TV shows, and anime)
+ * by using the TMBD and Kitsu APIs.
+ */
 class MediaRepository {
+    // The API key for TMBD API authentication.
     private val apiKey = Constants.API_KEY
 
+    /**
+     * This functions fetches a list of popular movies from the TMBD API.
+     *
+     * @param page The page number for pagination.
+     * @return List<Movie> The list of popular movies or an empty list if the request fails.
+     */
     suspend fun fetchPopularMovies(page: Int): List<Movie> {
         return withContext(Dispatchers.IO) {
             suspendCancellableCoroutine { continuation ->
+                // Make API call to fetch the popular movies.
                 val call = ApiClient.getApiService().getPopularMovies(apiKey, page)
                 call.enqueue(object : Callback<MovieResponse> {
-                    override fun onResponse(
-                        call: Call<MovieResponse>,
-                        response: Response<MovieResponse>
-                    ) {
+
+                    /**
+                     * This function called when the API response is successfully received.
+                     *
+                     * @param call The API call.
+                     * @param response The response from the API, containing movie information.
+                     */
+                    override fun onResponse(call: Call<MovieResponse>, response: Response<MovieResponse>) {
+                        // If successful, pass the list of popular movies to the continuation.
                         if (response.isSuccessful) {
                             val movies = response.body()?.results ?: emptyList()
                             continuation.resume(movies)
                         } else {
+                            // Log an error message.
                             Log.e("MediaHandler", "Failed to fetch movies: ${response.message()}")
                             continuation.resume(emptyList())
                         }
                     }
 
-                    override fun onFailure(
-                        call: Call<MovieResponse>,
-                        t: Throwable
-                    ) {
+                    /**
+                     * This function called when the API call fails.
+                     *
+                     * @param call The API call.
+                     * @param t The throwable indicating the failure reason.
+                     */
+                    override fun onFailure(call: Call<MovieResponse>, t: Throwable) {
                         Log.e("MediaHandler", "Exception in fetchPopularMovies: ${t.message}")
                         continuation.resumeWithException(t)
                     }
                 })
-
+                // Cancel the API call if the coroutine is cancelled.
                 continuation.invokeOnCancellation {
                     call.cancel()
                 }
@@ -56,33 +77,49 @@ class MediaRepository {
         }
     }
 
+    /**
+     * This functions fetches a list of popular TV show from the TMBD API.
+     *
+     * @param page The page number for pagination.
+     * @return List<Show> The list of popular TV show or an empty list if the request fails.
+     */
     suspend fun fetchPopularTVShows(page: Int): List<Show> {
         return withContext(Dispatchers.IO) {
             suspendCancellableCoroutine { continuation ->
+                // Make API call to fetch the TV shows.
                 val call = ApiClient.getApiService().getPopularTVShows(apiKey, page)
                 call.enqueue(object : Callback<ShowResponse> {
-                    override fun onResponse(
-                        call: Call<ShowResponse>,
-                        response: Response<ShowResponse>
-                    ) {
+
+                    /**
+                     * This function called when the API response is successfully received.
+                     *
+                     * @param call The API call.
+                     * @param response The response from the API, containing TV show information.
+                     */
+                    override fun onResponse(call: Call<ShowResponse>, response: Response<ShowResponse>) {
+                        // If successful, pass the list of popular TV shows to the continuation.
                         if (response.isSuccessful) {
                             val shows = response.body()?.results ?: emptyList()
                             continuation.resume(shows)
                         } else {
+                            // Log an error message.
                             Log.e("MediaHandler", "Failed to fetch TV shows: ${response.message()}")
                             continuation.resume(emptyList())
                         }
                     }
 
-                    override fun onFailure(
-                        call: Call<ShowResponse>,
-                        t: Throwable
-                    ) {
+                    /**
+                     * This function called when the API call fails.
+                     *
+                     * @param call The API call.
+                     * @param t The throwable indicating the failure reason.
+                     */
+                    override fun onFailure(call: Call<ShowResponse>, t: Throwable) {
                         Log.e("MediaHandler", "Exception in fetchPopularTVShows: ${t.message}")
                         continuation.resumeWithException(t)
                     }
                 })
-
+                // Cancel the API call if the coroutine is cancelled.
                 continuation.invokeOnCancellation {
                     call.cancel()
                 }
@@ -90,34 +127,49 @@ class MediaRepository {
         }
     }
 
+    /**
+     * This functions fetches a list of popular anime from the Kitsu API.
+     *
+     * @param page The page number for pagination.
+     * @return List<Anime> The list of popular Anime or an empty list if the request fails.
+     */
     suspend fun fetchPopularAnime(page: Int, limit: Int): List<Anime> {
         return withContext(Dispatchers.IO) {
             suspendCancellableCoroutine { continuation ->
-                val call =
-                    ApiClient.getApiService(KITSU_URL).getPopularAnimeKitsu(limit, page * limit)
+                // Make API call to fetch the anime.
+                val call = ApiClient.getApiService(KITSU_URL).getPopularAnimeKitsu(limit, page * limit)
                 call.enqueue(object : Callback<AnimeResponse> {
-                    override fun onResponse(
-                        call: Call<AnimeResponse>,
-                        response: Response<AnimeResponse>
-                    ) {
+
+                    /**
+                     * This function called when the API response is successfully received.
+                     *
+                     * @param call The API call.
+                     * @param response The response from the API, containing anime information.
+                     */
+                    override fun onResponse(call: Call<AnimeResponse>, response: Response<AnimeResponse>) {
+                        // If successful, pass the list of popular anime to the continuation.
                         if (response.isSuccessful) {
                             val animeList = response.body()?.data ?: emptyList()
                             continuation.resume(animeList)
                         } else {
+                            // Log an error message.
                             Log.e("MediaHandler", "Failed to fetch anime: ${response.message()}")
                             continuation.resume(emptyList())
                         }
                     }
 
-                    override fun onFailure(
-                        call: Call<AnimeResponse>,
-                        t: Throwable
-                    ) {
+                    /**
+                     * This function called when the API call fails.
+                     *
+                     * @param call The API call.
+                     * @param t The throwable indicating the failure reason.
+                     */
+                    override fun onFailure(call: Call<AnimeResponse>, t: Throwable) {
                         Log.e("MediaHandler", "Exception in fetchPopularAnime: ${t.message}")
                         continuation.resumeWithException(t)
                     }
                 })
-
+                // Cancel the API call if the coroutine is cancelled
                 continuation.invokeOnCancellation {
                     call.cancel()
                 }
