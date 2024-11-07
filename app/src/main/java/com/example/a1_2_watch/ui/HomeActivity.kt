@@ -13,18 +13,19 @@ import com.example.a1_2_watch.models.*
 import com.example.a1_2_watch.repository.MediaRepository
 import com.example.a1_2_watch.utils.NavigationUtils
 import com.example.a1_2_watch.models.MediaType
+import com.example.a1_2_watch.utils.LikeButtonUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: HomeLayoutBinding
     private lateinit var moviesAdapter: MediaAdapter<Movie>
     private lateinit var tvShowsAdapter: MediaAdapter<Show>
     private lateinit var animeAdapter: MediaAdapter<Anime>
+    private val likeButtonUtils = LikeButtonUtils(this)
     private val mediaRepository = MediaRepository()
     private var currentPage = 1
     private var isLoading = false
@@ -98,6 +99,7 @@ class HomeActivity : AppCompatActivity() {
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.animeRecyclerView.adapter = animeAdapter
         setupPaginationForRecyclerView(binding.animeRecyclerView, MediaType.ANIME)
+
     }
 
     private fun setupPaginationForRecyclerView(recyclerView: RecyclerView, mediaType: MediaType) {
@@ -236,74 +238,9 @@ class HomeActivity : AppCompatActivity() {
 
 
     private fun toggleLike(item: Any) {
-        val gson = Gson()
         lifecycleScope.launch(Dispatchers.IO) {
-            val editor = sharedPreferences.edit()
-
-            when (item) {
-                is Movie -> {
-                    val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
-                    val likedMovies: MutableList<Movie> =
-                        gson.fromJson(
-                            likedMoviesJson,
-                            object : TypeToken<MutableList<Movie>>() {}.type
-                        )
-
-                    val isRemoved = likedMovies.removeIf { it.title == item.title }
-                    if (!isRemoved) {
-                        item.isLiked = true
-                        likedMovies.add(item)
-                    } else {
-                        item.isLiked = false
-                    }
-
-                    editor.putString("liked_movies", gson.toJson(likedMovies))
-                    editor.apply()
-                }
-
-                is Show -> {
-                    val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
-                    val likedShows: MutableList<Show> =
-                        gson.fromJson(
-                            likedShowsJson,
-                            object : TypeToken<MutableList<Show>>() {}.type
-                        )
-
-                    val isRemoved = likedShows.removeIf { it.name == item.name }
-                    if (!isRemoved) {
-                        item.isLiked = true
-                        likedShows.add(item)
-                    } else {
-                        item.isLiked = false
-                    }
-
-                    editor.putString("liked_shows", gson.toJson(likedShows))
-                    editor.apply()
-                }
-
-                is Anime -> {
-                    val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
-                    val likedAnime: MutableList<Anime> =
-                        gson.fromJson(
-                            likedAnimeJson,
-                            object : TypeToken<MutableList<Anime>>() {}.type
-                        )
-
-                    val isRemoved =
-                        likedAnime.removeIf { it.attributes.canonicalTitle == item.attributes.canonicalTitle }
-                    if (!isRemoved) {
-                        item.isLiked = true
-                        likedAnime.add(item)
-                    } else {
-                        item.isLiked = false
-                    }
-
-                    editor.putString("liked_anime", gson.toJson(likedAnime))
-                    editor.apply()
-                }
-            }
-
             // Update the UI on the main thread
+            likeButtonUtils.toggleLikeToItem(item)
             withContext(Dispatchers.Main) {
                 when (item) {
                     is Movie -> moviesAdapter.updateLikeStatus(item)

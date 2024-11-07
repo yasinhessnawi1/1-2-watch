@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.a1_2_watch.databinding.ProviderLayoutBinding
 import com.example.a1_2_watch.models.Provider
+import com.example.a1_2_watch.R
 
 /**
  * This adapter for displaying a list of streaming providers.
@@ -63,6 +64,17 @@ class ProvidersAdapter(private var providers: List<Provider>) :
     }
 
     /**
+     * this function adds an item to the list of providers and notifies the adapter that the data set has changed.
+     * @param provider The provider to be added to the list.
+     *
+     */
+    fun addProvider(provider: Provider) {
+        // Adds the new provider to the list.
+        providers = providers + provider
+        // Notifies the adapter that the data set has changed.
+        notifyDataSetChanged()
+    }
+    /**
      * ProviderViewHolder class represents individual provider items in the RecyclerView adapter.
      *
      * @param binding The binding object for ProviderLayout, which holds references to UI elements.
@@ -78,10 +90,17 @@ class ProvidersAdapter(private var providers: List<Provider>) :
         fun bind(provider: Provider) {
             // Sets the provider name.
             binding.providerNameTextView.text = provider.provider_name
-            // Load provider logo using Glide library.
-            Glide.with(binding.providerLogoImageView.context)
-                .load("https://image.tmdb.org/t/p/original/${provider.logo_path}")
-                .into(binding.providerLogoImageView)
+            if (provider.logo_path == null) {
+                // Load provider logo using Glide library.
+                Glide.with(binding.providerLogoImageView.context)
+                    .load(R.drawable.provider_place_holder)
+                    .into(binding.providerLogoImageView)
+            }else{
+                // Load provider logo using Glide library.
+                Glide.with(binding.providerLogoImageView.context)
+                    .load("https://image.tmdb.org/t/p/original/${provider.logo_path}")
+                    .into(binding.providerLogoImageView)
+            }
         }
     }
 }
