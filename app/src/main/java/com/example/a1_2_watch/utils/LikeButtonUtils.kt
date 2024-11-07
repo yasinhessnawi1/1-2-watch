@@ -79,4 +79,40 @@ class LikeButtonUtils(private val context: Context) {
             }
         }
     }
+
+    fun isItemLiked(item: Any): Boolean {
+        return when (item) {
+            is Movie -> {
+                val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
+                val likedMovies: List<Movie> =
+                    gson.fromJson(
+                        likedMoviesJson,
+                        object : TypeToken<List<Movie>>() {}.type
+                    )
+                likedMovies.any { it.title == item.title }
+            }
+
+            is Show -> {
+                val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
+                val likedShows: List<Show> =
+                    gson.fromJson(
+                        likedShowsJson,
+                        object : TypeToken<List<Show>>() {}.type
+                    )
+                likedShows.any { it.name == item.name }
+            }
+
+            is Anime -> {
+                val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
+                val likedAnime: List<Anime> =
+                    gson.fromJson(
+                        likedAnimeJson,
+                        object : TypeToken<List<Anime>>() {}.type
+                    )
+                likedAnime.any { it.attributes.canonicalTitle == item.attributes.canonicalTitle }
+            }
+
+            else -> false
+        }
+    }
 }

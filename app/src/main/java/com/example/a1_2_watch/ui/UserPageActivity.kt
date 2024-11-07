@@ -202,7 +202,7 @@ class UserPageActivity : AppCompatActivity() {
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.home -> {
-                    finish() // Go back to Home Activity
+                    NavigationUtils.navigateToHome(this)
                     true
                 }
                 R.id.user -> true

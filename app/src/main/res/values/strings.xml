@@ -37,4 +37,5 @@
     <string name="first_air_date_n_a">First Air Date: N/A</string>
     <string name="next_episode">Next episode: %1$s</string>
     <string name="start_date_n_a">Start Date: N/A</string>
+    <string name="no_available_providers_in_your_region">No available providers in your region.</string>
 </resources>

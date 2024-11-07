@@ -1,4 +1,3 @@
-// DetailsActivity.kt
 package com.example.a1_2_watch.ui
 
 import android.os.Bundle
@@ -12,18 +11,20 @@ import com.example.a1_2_watch.databinding.DetailsLayoutBinding
 import com.example.a1_2_watch.models.*
 import com.example.a1_2_watch.repository.DetailsRepository
 import com.example.a1_2_watch.utils.Constants
+import com.example.a1_2_watch.utils.LikeButtonUtils
 import com.example.a1_2_watch.utils.NavigationUtils
 import java.util.Locale
 import kotlin.collections.joinToString
 
 class DetailsActivity : AppCompatActivity() {
-
     private lateinit var binding: DetailsLayoutBinding
     private lateinit var providersAdapter: ProvidersAdapter
     private val detailsRepository = DetailsRepository()
     private var countryCode: String = Locale.getDefault().country
+    private val likeButtonUtils = LikeButtonUtils(this)
     private var mediaId: Int = -1
     private lateinit var mediaType: MediaType
+    private var detailedItem: Any? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +34,7 @@ class DetailsActivity : AppCompatActivity() {
         providersAdapter = ProvidersAdapter(emptyList())
         setupProvidersRecyclerView()
         binding.goBackButton.setOnClickListener {
-            finish() // Finish activity when back button is pressed
+            finish()
         }
         setupBottomNavigation()
         extractMediaDataFromIntent()
@@ -41,8 +42,96 @@ class DetailsActivity : AppCompatActivity() {
         if (mediaId != -1) {
             fetchDetails()
         }
-
         fetchProvidersBasedOnMediaType()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        detailedItem?.let { setLikeButtonStatus(it) }
+    }
+
+    private fun toggleLike(detailedItem: Any) {
+        val minimalItem: Any? = when (detailedItem) {
+            is MovieDetails -> Movie(
+                id = detailedItem.id,
+                title = detailedItem.title,
+                overview = detailedItem.overview ?: "",
+                poster_path = detailedItem.poster_path,
+                vote_average = detailedItem.vote_average,
+                release_date = detailedItem.release_date,
+                isLiked = true
+            )
+
+            is ShowDetails -> Show(
+                id = detailedItem.id,
+                name = detailedItem.name,
+                overview = detailedItem.overview ?: "",
+                poster_path = detailedItem.poster_path,
+                vote_average = detailedItem.vote_average,
+                first_air_date = detailedItem.first_air_date,
+                isLiked = true
+            )
+
+            is AnimeDetails -> {
+                val animeId = detailedItem.data?.id?.toInt()
+                val attributes = detailedItem.data?.attributes
+                if (animeId != null && attributes != null) {
+                    Anime(id = animeId, attributes = attributes, isLiked = true)
+                } else null
+            }
+
+            else -> null
+        }
+        if (minimalItem is Movie || minimalItem is Show || minimalItem is Anime) {
+            likeButtonUtils.toggleLikeToItem(minimalItem)
+            setLikeButtonStatus(detailedItem) // Update icon after toggling
+        }
+    }
+
+    private fun setLikeButtonStatus(detailedItem: Any) {
+        // Check the like status and update the heart icon accordingly
+        val isLiked = when (detailedItem) {
+            is MovieDetails -> likeButtonUtils.isItemLiked(
+                Movie(
+                    id = detailedItem.id,
+                    title = detailedItem.title,
+                    overview = detailedItem.overview ?: "",
+                    poster_path = detailedItem.poster_path ?: "",
+                    vote_average = detailedItem.vote_average,
+                    release_date = detailedItem.release_date
+                )
+            )
+
+            is ShowDetails -> likeButtonUtils.isItemLiked(
+                Show(
+                    id = detailedItem.id,
+                    name = detailedItem.name,
+                    overview = detailedItem.overview ?: "",
+                    poster_path = detailedItem.poster_path ?: "",
+                    vote_average = detailedItem.vote_average,
+                    first_air_date = detailedItem.first_air_date
+                )
+            )
+
+            is AnimeDetails -> {
+                val animeId = detailedItem.data?.id?.toInt()
+                val title = detailedItem.data?.attributes?.canonicalTitle
+                if (animeId != null && title != null) {
+                    likeButtonUtils.isItemLiked(
+                        Anime(
+                            id = animeId,
+                            attributes = detailedItem.data.attributes,
+                            isLiked = false
+                        )
+                    )
+                } else false
+            }
+
+            else -> false
+        }
+        binding.saveButton.setImageResource(
+            if (isLiked) R.drawable.ic_heart else R.drawable.ic_heart_outline
+        )
     }
 
     private fun setupBottomNavigation() {
@@ -93,10 +182,26 @@ class DetailsActivity : AppCompatActivity() {
     private fun fetchDetails() {
         detailsRepository.fetchDetails(mediaId, mediaType) { data ->
             runOnUiThread {
+                detailedItem = data
                 when (data) {
-                    is MovieDetails -> updateMovieDetails(data)
-                    is ShowDetails -> updateTVShowDetails(data)
-                    is AnimeDetails -> updateAnimeDetails(data)
+                    is MovieDetails -> {
+                        updateMovieDetails(data)
+                        setLikeButtonStatus(data) // Set initial like status
+                        binding.saveButton.setOnClickListener { toggleLike(data) }
+                    }
+
+                    is ShowDetails -> {
+                        updateTVShowDetails(data)
+                        setLikeButtonStatus(data) // Set initial like status
+                        binding.saveButton.setOnClickListener { toggleLike(data) }
+                    }
+
+                    is AnimeDetails -> {
+                        updateAnimeDetails(data)
+                        setLikeButtonStatus(data) // Set initial like status
+                        binding.saveButton.setOnClickListener { toggleLike(data) }
+                    }
+
                     else -> showError()
                 }
             }
@@ -152,7 +257,7 @@ class DetailsActivity : AppCompatActivity() {
             tvShow.overview ?: getString(R.string.no_overview_available)
         binding.releaseDateTextView.text = buildString {
             append("First Air Date: ")
-            append(tvShow.first_air_date)
+            append(tvShow.first_air_date )
         }
         binding.seasonCountTextView.text = buildString {
             append("Seasons: ")
@@ -160,7 +265,7 @@ class DetailsActivity : AppCompatActivity() {
         }
         binding.episodeCountTextView.text = buildString {
             append("Episodes: ")
-            append(tvShow.number_of_episodes)
+            append(tvShow.number_of_episodes )
         }
         binding.runtimeTextView.text = buildString {
             append("Runtime: ")
@@ -171,7 +276,7 @@ class DetailsActivity : AppCompatActivity() {
         if (tvShow.status == "Ended") {
             binding.endDateTextView.text = buildString {
                 append("Last Air Date: ")
-                append(tvShow.last_air_date)
+                append(tvShow.last_air_date ?: "Unknown")
             }
             binding.nextReleaseLayout.visibility = View.GONE
         } else {
@@ -183,11 +288,11 @@ class DetailsActivity : AppCompatActivity() {
                 .into(binding.sandClockView)
             binding.nextReleaseTextView.text = buildString {
                 append("Next Episode to Air: ")
-                append(tvShow.next_episode_to_air?.name)
+                append(tvShow.next_episode_to_air?.name ?: "Unknown")
             }
             binding.nextReleaseDateTextView.text = buildString {
                 append("When? ")
-                append(tvShow.next_episode_to_air?.air_date)
+                append(tvShow.next_episode_to_air?.air_date ?: "Unknown")
             }
         }
 
@@ -296,7 +401,7 @@ class DetailsActivity : AppCompatActivity() {
 
     private fun fetchStreamingProviders(animeId: String) {
         detailsRepository.fetchAnimeStreamingLinks(animeId) { streamingLinks ->
-            if (streamingLinks != null && streamingLinks.isNotEmpty()) {
+            if (!streamingLinks.isNullOrEmpty()) {
                 for (link in streamingLinks) {
                     fetchStreamerName(link)
                 }
@@ -305,7 +410,6 @@ class DetailsActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun fetchStreamerName(streamingLink: StreamingLink) {
         val streamerLinkId = streamingLink.id
@@ -327,7 +431,6 @@ class DetailsActivity : AppCompatActivity() {
                 } else {
                     "US" // Fallback to "US" or any preferred default
                 }
-
                 val providers = watchProvidersResponse.results[region]
                 if (providers?.flatrate?.isNotEmpty() == true) {
                     providersAdapter.updateProviders(providers.flatrate)
@@ -344,11 +447,11 @@ class DetailsActivity : AppCompatActivity() {
     private fun handleNoProvidersAvailable() {
         providersAdapter.updateProviders(emptyList())
         binding.noProvidersTextView.visibility = View.VISIBLE
-        binding.noProvidersTextView.text = "No available providers in your region."
+        binding.noProvidersTextView.text = getString(R.string.no_available_providers_in_your_region)
     }
 
     private fun handleProviderFetchError() {
         binding.noProvidersTextView.visibility = View.VISIBLE
-        binding.noProvidersTextView.text = "Error fetching providers."
+        binding.noProvidersTextView.text = getString(R.string.error_fetching_providers)
     }
 }
