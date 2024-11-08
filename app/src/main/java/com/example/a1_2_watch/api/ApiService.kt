@@ -145,4 +145,14 @@ interface ApiService {
     @GET("anime")
     fun searchAnime(@Query("filter[text]") query: String): Call<AnimeResponse>
 
+
+    @GET("movie/{movie_id}/similar")
+    fun getRelatedMovies(@Path("movie_id") movieId: Int, @Query("api_key") apiKey: String): Call<MovieResponse>
+
+    @GET("tv/{tv_id}/similar")
+    fun getRelatedTVShows(@Path("tv_id") tvShowId: Int, @Query("api_key") apiKey: String): Call<ShowResponse>
+
+    @GET("anime")
+    fun searchAnimeByType(@Query("filter[subtype]") subtype: String): Call<AnimeResponse>
+
 }

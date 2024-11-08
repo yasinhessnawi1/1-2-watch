@@ -6,9 +6,11 @@
 
     <ImageButton
         android:id="@+id/goBackButton"
-        android:layout_width="60dp"
-        android:layout_height="56dp"
+        android:layout_width="56dp"
+        android:layout_height="42dp"
         android:layout_margin="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
         android:background="@android:color/transparent"
         android:contentDescription="@string/go_back"
         android:src="@drawable/ic_arrow_back"
@@ -17,26 +19,191 @@
 
     <androidx.appcompat.widget.SearchView
         android:id="@+id/searchView"
-        android:layout_width="320dp"
-        android:layout_height="49dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="292dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="4dp"
         android:backgroundTint="@color/colorPrimary"
         android:iconifiedByDefault="false"
         android:queryHint="Search for Movies, TV Shows, or Anime"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.851"
         app:layout_constraintStart_toEndOf="@id/goBackButton"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/searchResultsRecyclerView"
-        android:layout_width="415dp"
+        android:layout_width="match_parent"
         android:layout_height="571dp"
         android:layout_marginTop="24dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/searchView" />
+        app:layout_constraintTop_toBottomOf="@+id/searchView"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/searchView"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="0dp">
+
+            <!-- Movies Section -->
+            <LinearLayout
+                android:id="@+id/moviesTitleLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="16dp">
+
+                <ImageView
+                    android:id="@+id/moviesTitleIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="3dp"
+                    android:src="@drawable/play"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/play_icon" />
+
+                <TextView
+                    android:id="@+id/moviesRecyclerViewTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/related_movies"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="#382121" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/emptyMoviesTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/no_liked_movies"
+                android:textSize="18sp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/moviesTitleLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/moviesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:padding="0dp"
+                app:layout_constraintTop_toBottomOf="@id/emptyMoviesTextView" />
+
+            <!-- TV Shows Section -->
+            <LinearLayout
+                android:id="@+id/tvShowsTitleLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/moviesRecyclerView"
+                android:layout_marginTop="24dp">
+
+                <ImageView
+                    android:id="@+id/tvShowsTitleIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/play"
+                    android:layout_marginStart="3dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/play_icon" />
+
+                <TextView
+                    android:id="@+id/tvShowsRecyclerViewTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/related_tvShows"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="#382121" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/emptyTvShowsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/no_liked_tv_shows"
+                android:textSize="18sp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/tvShowsTitleLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tvShowsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:padding="0dp"
+                app:layout_constraintTop_toBottomOf="@id/emptyTvShowsTextView" />
+
+            <!-- Anime Section -->
+            <LinearLayout
+                android:id="@+id/animeTitleLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvShowsRecyclerView"
+                android:layout_marginTop="24dp">
+
+                <ImageView
+                    android:id="@+id/animeTitleIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/play"
+                    android:layout_marginStart="3dp"
+                    android:contentDescription="@string/play_icon" />
+
+                <TextView
+                    android:id="@+id/animeRecyclerViewTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/related_anime"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="#382121" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/emptyAnimeTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/no_liked_anime"
+                android:textSize="18sp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/animeTitleLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/animeRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:padding="0dp"
+                app:layout_constraintTop_toBottomOf="@id/emptyAnimeTextView" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"

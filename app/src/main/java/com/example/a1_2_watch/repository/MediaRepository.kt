@@ -176,4 +176,28 @@ class MediaRepository {
             }
         }
     }
+
+    suspend fun fetchRelatedMovies(movieId: Int): List<Movie> {
+        return withContext(Dispatchers.IO) {
+            val call = ApiClient.getApiService().getRelatedMovies(movieId, apiKey)
+            val response = call.execute()
+            response.body()?.results ?: emptyList()
+        }
+    }
+
+    suspend fun fetchRelatedTVShows(tvShowId: Int): List<Show> {
+        return withContext(Dispatchers.IO) {
+            val call = ApiClient.getApiService().getRelatedTVShows(tvShowId, apiKey)
+            val response = call.execute()
+            response.body()?.results ?: emptyList()
+        }
+    }
+
+    suspend fun fetchAnimeByType(type: String): List<Anime> {
+        return withContext(Dispatchers.IO) {
+            val call = ApiClient.getApiService(KITSU_URL).searchAnimeByType(type)
+            val response = call.execute()
+            response.body()?.data ?: emptyList()
+        }
+    }
 }

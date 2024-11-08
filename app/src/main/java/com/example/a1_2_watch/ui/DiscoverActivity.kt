@@ -1,28 +1,43 @@
 package com.example.a1_2_watch.ui
 
+import android.content.Context
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.a1_2_watch.R
 import com.example.a1_2_watch.adapters.DiscoverAdapter
+import com.example.a1_2_watch.adapters.MediaAdapter
 import com.example.a1_2_watch.databinding.DiscoverLayoutBinding
 import com.example.a1_2_watch.models.Anime
 import com.example.a1_2_watch.models.Movie
 import com.example.a1_2_watch.models.Show
 import com.example.a1_2_watch.repository.DiscoverRepository
+import com.example.a1_2_watch.repository.MediaRepository
 import com.example.a1_2_watch.utils.Constants
+import com.example.a1_2_watch.utils.LikeButtonUtils
 import com.example.a1_2_watch.utils.NavigationUtils
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DiscoverActivity : AppCompatActivity() {
     private lateinit var binding: DiscoverLayoutBinding
     private val searchRepository = DiscoverRepository()
+    private val mediaRepository = MediaRepository()
+    private lateinit var moviesAdapter: MediaAdapter<Movie>
+    private lateinit var showsAdapter: MediaAdapter<Show>
+    private lateinit var animeAdapter: MediaAdapter<Anime>
     private val discoverAdapter = DiscoverAdapter(onItemClick = { item ->
         handleItemClick(item) // Handle item click based on type
     })
-
-    // Flag to track if the query is empty
-    private var isQueryEmpty = false
+    private val sharedPreferences by lazy {
+        getSharedPreferences("liked_items", Context.MODE_PRIVATE)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,16 +48,55 @@ class DiscoverActivity : AppCompatActivity() {
             finish()
         }
 
-
         setupRecyclerView()
         setupSearchView()
         setupBottomNavigation()
+        loadRelatedItems()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshLikedStatus()
     }
 
     private fun setupRecyclerView() {
         binding.searchResultsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@DiscoverActivity)
             adapter = discoverAdapter
+            visibility = View.GONE
+        }
+
+        moviesAdapter = MediaAdapter(
+            context = this,
+            onItemClick = { item -> handleItemClick(item) },
+            onSaveClick = { item -> toggleLike(item) },
+            fetchDetailsFromAPI = true
+        )
+        binding.moviesRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@DiscoverActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = moviesAdapter
+        }
+
+        showsAdapter = MediaAdapter(
+            context = this,
+            onItemClick = { item -> handleItemClick(item) },
+            onSaveClick = { item -> toggleLike(item) },
+            fetchDetailsFromAPI = true
+        )
+        binding.tvShowsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@DiscoverActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = showsAdapter
+        }
+
+        animeAdapter = MediaAdapter(
+            context = this,
+            onItemClick = { item -> handleItemClick(item) },
+            onSaveClick = { item -> toggleLike(item) },
+            fetchDetailsFromAPI = true
+        )
+        binding.animeRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@DiscoverActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = animeAdapter
         }
     }
 
@@ -55,16 +109,11 @@ class DiscoverActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 val trimmedQuery = newText?.trim() ?: ""
-
-                // If the query is empty, clear the search results
                 if (trimmedQuery.isEmpty()) {
-                    isQueryEmpty = true // Set flag to true
-                    discoverAdapter.updateItems(emptyList())
-                    return true
+                    clearSearchResults()
+                } else {
+                    performSearch(trimmedQuery)
                 }
-
-                isQueryEmpty = false // Set flag to false for non-empty query
-                performSearch(trimmedQuery)
                 return true
             }
         })
@@ -72,43 +121,47 @@ class DiscoverActivity : AppCompatActivity() {
 
     private fun performSearch(query: String) {
         val trimmedQuery = query.trim()
-
-        // If the query is empty, clear the search results and set the flag
-        if (trimmedQuery.isEmpty() || trimmedQuery.isBlank()) {
-            isQueryEmpty = true
-            discoverAdapter.updateItems(emptyList())
+        if (trimmedQuery.isEmpty()) {
+            clearSearchResults()
             return
         }
 
-        isQueryEmpty = false // Reset flag when performing a search
+        binding.searchResultsRecyclerView.visibility = View.VISIBLE
+        binding.searchResultsRecyclerView.bringToFront()
+        toggleRelatedListsVisibility(false)
+
         val searchResults = mutableListOf<Any>()
 
         searchRepository.searchMovies(Constants.API_KEY, trimmedQuery) { movieResponse ->
-            if (!isQueryEmpty) { // Only update if query is not empty
-                movieResponse?.results?.let { movies ->
-                    searchResults.addAll(movies)
-                    discoverAdapter.updateItems(searchResults)
-                }
+            movieResponse?.results?.let { movies ->
+                searchResults.addAll(movies)
+                updateSearchResults(searchResults)
             }
         }
 
         searchRepository.searchTVShows(Constants.API_KEY, trimmedQuery) { showResponse ->
-            if (!isQueryEmpty) { // Only update if query is not empty
-                showResponse?.results?.let { shows ->
-                    searchResults.addAll(shows)
-                    discoverAdapter.updateItems(searchResults)
-                }
+            showResponse?.results?.let { shows ->
+                searchResults.addAll(shows)
+                updateSearchResults(searchResults)
             }
         }
 
         searchRepository.searchAnime(trimmedQuery) { animeResponse ->
-            if (!isQueryEmpty) { // Only update if query is not empty
-                animeResponse?.data?.let { animes ->
-                    searchResults.addAll(animes)
-                    discoverAdapter.updateItems(searchResults)
-                }
+            animeResponse?.data?.let { animes ->
+                searchResults.addAll(animes)
+                updateSearchResults(searchResults)
             }
         }
+    }
+
+    private fun updateSearchResults(results: List<Any>) {
+        discoverAdapter.updateItems(results)
+    }
+
+    private fun clearSearchResults() {
+        discoverAdapter.updateItems(emptyList())
+        binding.searchResultsRecyclerView.visibility = View.GONE
+        toggleRelatedListsVisibility(true)
     }
 
     private fun handleItemClick(item: Any) {
@@ -136,5 +189,124 @@ class DiscoverActivity : AppCompatActivity() {
             }
         }
     }
-}
 
+    private fun toggleRelatedListsVisibility(isVisible: Boolean) {
+        val visibility = if (isVisible) View.VISIBLE else View.GONE
+        binding.moviesTitleLayout.visibility = visibility
+        binding.moviesRecyclerView.visibility = visibility
+        binding.tvShowsTitleLayout.visibility = visibility
+        binding.tvShowsRecyclerView.visibility = visibility
+        binding.animeTitleLayout.visibility = visibility
+        binding.animeRecyclerView.visibility = visibility
+        binding.emptyMoviesTextView.visibility = visibility
+        binding.emptyTvShowsTextView.visibility = visibility
+        binding.emptyAnimeTextView.visibility = visibility
+    }
+
+    private fun loadRelatedItems() {
+        lifecycleScope.launch {
+            val likedMovies = getLikedMovies()
+            val likedTVShows = getLikedTVShows()
+
+            val relatedMovies = fetchRelatedMovies(likedMovies)
+            val relatedTVShows = fetchRelatedTVShows(likedTVShows)
+            val relatedAnime = fetchRelatedAnime()
+
+            displayRelatedItems(relatedMovies, relatedTVShows, relatedAnime)
+        }
+    }
+
+    private suspend fun getLikedMovies(): List<Movie> = withContext(Dispatchers.IO) {
+        val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
+        Gson().fromJson(likedMoviesJson, object : TypeToken<List<Movie>>() {}.type)
+    }
+
+    private suspend fun getLikedTVShows(): List<Show> = withContext(Dispatchers.IO) {
+        val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
+        Gson().fromJson(likedShowsJson, object : TypeToken<List<Show>>() {}.type)
+    }
+
+    private suspend fun fetchRelatedMovies(likedMovies: List<Movie>): List<Movie> {
+        val relatedMovies = mutableListOf<Movie>()
+        for (movie in likedMovies) {
+            val related = mediaRepository.fetchRelatedMovies(movie.id)
+            relatedMovies.addAll(related.take(10))
+        }
+        return relatedMovies
+    }
+
+    private suspend fun fetchRelatedTVShows(likedTVShows: List<Show>): List<Show> {
+        val relatedShows = mutableListOf<Show>()
+        for (show in likedTVShows) {
+            val related = mediaRepository.fetchRelatedTVShows(show.id)
+            relatedShows.addAll(related.take(10))
+        }
+        return relatedShows
+    }
+
+    private suspend fun fetchRelatedAnime(): List<Anime> {
+        val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
+        val likedAnime: List<Anime> = Gson().fromJson(likedAnimeJson, object : TypeToken<List<Anime>>() {}.type)
+        val animeTypes = likedAnime.map { it.attributes.subtype }.distinct()
+
+        val relatedAnime = mutableListOf<Anime>()
+        for (type in animeTypes) {
+            val related = mediaRepository.fetchAnimeByType(type)
+            relatedAnime.addAll(related.take(10))
+        }
+        return relatedAnime
+    }
+
+    private fun displayRelatedItems(movies: List<Movie>, shows: List<Show>, anime: List<Anime>) {
+        moviesAdapter.setMediaList(movies)
+        showsAdapter.setMediaList(shows)
+        animeAdapter.setMediaList(anime)
+
+        binding.emptyMoviesTextView.visibility = if (movies.isEmpty()) View.VISIBLE else View.GONE
+        binding.emptyTvShowsTextView.visibility = if (shows.isEmpty()) View.VISIBLE else View.GONE
+        binding.emptyAnimeTextView.visibility = if (anime.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun toggleLike(item: Any) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            LikeButtonUtils(this@DiscoverActivity).toggleLikeToItem(item)
+            withContext(Dispatchers.Main) {
+                when (item) {
+                    is Movie -> moviesAdapter.updateLikeStatus(item)
+                    is Show -> showsAdapter.updateLikeStatus(item)
+                    is Anime -> animeAdapter.updateLikeStatus(item)
+                }
+            }
+        }
+    }
+
+    private fun refreshLikedStatus() {
+        lifecycleScope.launch {
+            val gson = Gson()
+
+            val likedMoviesTitles = withContext(Dispatchers.IO) {
+                val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
+                val likedMovies: List<Movie> =
+                    gson.fromJson(likedMoviesJson, object : TypeToken<List<Movie>>() {}.type)
+                likedMovies.mapNotNull { it.title }
+            }
+            moviesAdapter.refreshLikedStatus(likedMoviesTitles)
+
+            val likedShowsNames = withContext(Dispatchers.IO) {
+                val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
+                val likedShows: List<Show> =
+                    gson.fromJson(likedShowsJson, object : TypeToken<List<Show>>() {}.type)
+                likedShows.mapNotNull { it.name }
+            }
+            showsAdapter.refreshLikedStatus(likedShowsNames)
+
+            val likedAnimeTitles = withContext(Dispatchers.IO) {
+                val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
+                val likedAnime: List<Anime> =
+                    gson.fromJson(likedAnimeJson, object : TypeToken<List<Anime>>() {}.type)
+                likedAnime.map { it.attributes.canonicalTitle }
+            }
+            animeAdapter.refreshLikedStatus(likedAnimeTitles)
+        }
+    }
+}

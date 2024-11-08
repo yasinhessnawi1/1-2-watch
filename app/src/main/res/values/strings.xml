@@ -11,6 +11,9 @@
     <string name="popular_anime">Popular Anime: </string>
     <string name="now_airing_tv_shows">Now Airing TV Shows: </string>
     <string name="latest_movies">Latest Movies: </string>
+    <string name="related_movies">Related Movies: </string>
+    <string name="related_tvShows">Related TV Shows: </string>
+    <string name="related_anime">Related Anime: </string>
     <string name="play_icon">play_icon</string>
     <string name="liked_movies">Movies you follow</string>
     <string name="liked_tv_shows">Tv shows you follow</string>
@@ -38,4 +41,7 @@
     <string name="next_episode">Next episode: %1$s</string>
     <string name="start_date_n_a">Start Date: N/A</string>
     <string name="no_available_providers_in_your_region">No available providers in your region.</string>
+    <string name="no_liked_movies">No liked movies to display</string>
+    <string name="no_liked_tv_shows">No liked TV shows to display</string>
+    <string name="no_liked_anime">No liked anime to display</string>
 </resources>
