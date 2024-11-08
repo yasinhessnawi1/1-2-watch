@@ -177,26 +177,53 @@ class MediaRepository {
         }
     }
 
+    /**
+     * This function fetches a list of movies related to a specific movie by its ID from the TMDB API.
+     *
+     * @param movieId The unique ID of the movie.
+     * @return List<Movie> A list of related movies or an empty list if the request fails.
+     */
     suspend fun fetchRelatedMovies(movieId: Int): List<Movie> {
         return withContext(Dispatchers.IO) {
+            // Make the API call to fetch related movies by movie ID.
             val call = ApiClient.getApiService().getRelatedMovies(movieId, apiKey)
+            // Execute the call
             val response = call.execute()
+            // Return the list of related movies or an empty list if the request fails.
             response.body()?.results ?: emptyList()
         }
     }
 
+    /**
+     * This function fetches a list of TV shows related to a specific TV show by its ID from the TMDB API.
+     *
+     * @param tvShowId The unique ID of the TV show.
+     * @return List<Show> A list of related TV shows or an empty list if the request fails.
+     */
     suspend fun fetchRelatedTVShows(tvShowId: Int): List<Show> {
         return withContext(Dispatchers.IO) {
+            // Make the API call to fetch related TV shows by TV show ID.
             val call = ApiClient.getApiService().getRelatedTVShows(tvShowId, apiKey)
+            // Execute the call
             val response = call.execute()
+            // Return the list of related TV shows or an empty list if the request fails.
             response.body()?.results ?: emptyList()
         }
     }
 
+    /**
+     * This function fetches a list of anime of a specified type from the Kitsu API.
+     *
+     * @param type The type of anime to filter results by.
+     * @return List<Anime> A list of anime of the specified type, or an empty list if the request fails.
+     */
     suspend fun fetchAnimeByType(type: String): List<Anime> {
         return withContext(Dispatchers.IO) {
+            // Make the API call to fetch related anime based on the specified type.
             val call = ApiClient.getApiService(KITSU_URL).searchAnimeByType(type)
+            // Execute the call
             val response = call.execute()
+            // Return the list of related anime or an empty list if the request fails.
             response.body()?.data ?: emptyList()
         }
     }

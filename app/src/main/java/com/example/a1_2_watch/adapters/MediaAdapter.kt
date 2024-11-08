@@ -170,7 +170,7 @@ class MediaAdapter<T>(
 
                 is Anime -> {
                     mediaTitle = mediaItem.attributes.canonicalTitle
-                    mediaRating = if (!mediaItem.attributes.averageRating.isNullOrEmpty()) {
+                    mediaRating = if (mediaItem.attributes.averageRating.isNotEmpty()) {
                         String.format(
                             Locale.getDefault(),
                             "%.1f",

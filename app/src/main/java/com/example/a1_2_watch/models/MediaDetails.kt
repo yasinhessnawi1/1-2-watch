@@ -8,7 +8,6 @@ package com.example.a1_2_watch.models
  * @property belongs_to_collection Collection information, if any.
  * @property budget Budget of the movie in USD.
  * @property genres List of genres for the movie.
- * @property homepage Official homepage URL.
  * @property id Unique ID for the movie.
  * @property imdb_id IMDb ID of the movie.
  * @property original_language Original language code.

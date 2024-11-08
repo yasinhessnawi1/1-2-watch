@@ -145,13 +145,32 @@ interface ApiService {
     @GET("anime")
     fun searchAnime(@Query("filter[text]") query: String): Call<AnimeResponse>
 
-
+    /**
+     * This function fetches a list of movies related to a specific movie by a given ID.
+     *
+     * @param movieId The unique ID of the movie.
+     * @param apiKey The API key for authentication.
+     * @return A [Call] object with the response containing a list of related movies.
+     */
     @GET("movie/{movie_id}/similar")
     fun getRelatedMovies(@Path("movie_id") movieId: Int, @Query("api_key") apiKey: String): Call<MovieResponse>
 
+    /**
+     * This function fetches a list of TV shows related to a specific TV show by a given ID.
+     *
+     * @param tvShowId The unique ID of the TV show.
+     * @param apiKey The API key for authentication.
+     * @return A [Call] object with the response containing a list of related TV shows.
+     */
     @GET("tv/{tv_id}/similar")
     fun getRelatedTVShows(@Path("tv_id") tvShowId: Int, @Query("api_key") apiKey: String): Call<ShowResponse>
 
+    /**
+     * This function searches for anime on Kitsu by a specific type.
+     *
+     * @param subtype The subtype of the anime to filter results by.
+     * @return A [Call] object with the response containing a list of anime matching the subtype.
+     */
     @GET("anime")
     fun searchAnimeByType(@Query("filter[subtype]") subtype: String): Call<AnimeResponse>
 
