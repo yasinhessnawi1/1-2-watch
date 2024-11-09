@@ -47,7 +47,6 @@ class DiscoverActivity : AppCompatActivity() {
         binding.goBackButton.setOnClickListener {
             finish()
         }
-
         setupRecyclerView()
         setupSearchView()
         setupBottomNavigation()
