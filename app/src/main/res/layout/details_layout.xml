@@ -107,10 +107,8 @@
 
             <TextView
                 android:id="@+id/titleTextView"
-                android:layout_width="383dp"
-                android:layout_height="62dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:text="Title"
                 android:textAlignment="center"

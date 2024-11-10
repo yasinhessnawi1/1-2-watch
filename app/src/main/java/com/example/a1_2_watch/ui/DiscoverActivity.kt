@@ -52,6 +52,8 @@ class DiscoverActivity : AppCompatActivity() {
     private val sharedPreferences by lazy {
         getSharedPreferences("liked_items", Context.MODE_PRIVATE)
     }
+    // Creates likeButtonUtils for managing liked items.
+    private val likeButtonUtils = LikeButtonUtils(this)
 
     /**
      * This function initializes the activity, sets up view bindings, RecyclerView, adapters, loads
@@ -367,7 +369,11 @@ class DiscoverActivity : AppCompatActivity() {
         // Iterate through each liked movie and fetch related movies.
         for (movie in likedMovies) {
             // Gets the related movies for the given movie ID.
-            val related = mediaRepository.fetchRelatedMovies(movie.id)
+            val related = mediaRepository.fetchRelatedMovies(movie.id).map { relatedMovie ->
+                // Set the liked status using isItemLiked
+                relatedMovie.isLiked = likeButtonUtils.isItemLiked(relatedMovie)
+                relatedMovie
+            }
             // Adds up to 10 related movies to the list.
             relatedMovies.addAll(related.take(10))
         }
@@ -388,7 +394,11 @@ class DiscoverActivity : AppCompatActivity() {
         // Iterate through each liked TV Show and fetch related TV Shows.
         for (show in likedTVShows) {
             // Gets the related TV Shows for the given TV Show ID.
-            val related = mediaRepository.fetchRelatedTVShows(show.id)
+            val related = mediaRepository.fetchRelatedTVShows(show.id).map { relatedShow ->
+                // Set the liked status using isItemLiked
+                relatedShow.isLiked = likeButtonUtils.isItemLiked(relatedShow)
+                relatedShow
+            }
             // Adds up to 10 related TV Shows to the list.
             relatedShows.addAll(related.take(10))
         }
@@ -414,7 +424,11 @@ class DiscoverActivity : AppCompatActivity() {
         // Iterate through each distinct anime subtype to fetch the related anime.
         for (type in animeTypes) {
             // Gets the related anime based on subtype.
-            val related = mediaRepository.fetchAnimeByType(type)
+            val related = mediaRepository.fetchAnimeByType(type).map { relatedAnimeItem ->
+                // Set the liked status using isItemLiked
+                relatedAnimeItem.isLiked = likeButtonUtils.isItemLiked(relatedAnimeItem)
+                relatedAnimeItem
+            }
             // Adds up to 10 related anime to the list.
             relatedAnime.addAll(related.take(10))
         }
@@ -451,6 +465,7 @@ class DiscoverActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             // Toggles the like status of the item in the shared preferences.
             LikeButtonUtils(this@DiscoverActivity).toggleLikeToItem(item)
+
             // Updates the UI on the main thread after toggling.
             withContext(Dispatchers.Main) {
                 when (item) {
