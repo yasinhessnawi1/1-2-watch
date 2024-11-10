@@ -89,6 +89,7 @@ class UserPageActivity : AppCompatActivity() {
             // True to allow API fetching for additional details.
             fetchDetailsFromAPI = true
         )
+        // Sets up adapter for TV Shows with click listeners
         showsAdapter = MediaAdapter(
             context = context,
             // Handle TV Show item click and navigates to the details page of selected TV Show.
@@ -97,6 +98,7 @@ class UserPageActivity : AppCompatActivity() {
             onSaveClick = { toggleLikeAndRefresh(it) },
             fetchDetailsFromAPI = true
         )
+        // Sets up adapter for anime with click listeners
         animeAdapter = MediaAdapter(
             context = context,
             // Handle anime item click and navigates to the details page of selected anime.

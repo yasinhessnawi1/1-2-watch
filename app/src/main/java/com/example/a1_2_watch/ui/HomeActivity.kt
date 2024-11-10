@@ -337,6 +337,8 @@ class HomeActivity : AppCompatActivity() {
 
     /**
      * This function toggles the liked status of an item and updates the UI accordingly.
+     *
+     * @param item The media item to toggle liked status for.
      */
     private fun toggleLike(item: Any) {
         lifecycleScope.launch(Dispatchers.IO) {
