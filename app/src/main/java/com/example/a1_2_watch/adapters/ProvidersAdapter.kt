@@ -31,10 +31,10 @@ class ProvidersAdapter(private var providers: List<Provider>) :
     }
 
     /**
-     * This Function to display the data at the specified position in the RecycleView.
+     * This Function to display the data at the specified position in the RecyclerView.
      *
      * @param holder ProviderViewHolder that holds the UI elements for each provider.
-     * @param position Position of the item to be displayed in the RecycleView.
+     * @param position Position of the item to be displayed in the RecyclerView.
      */
     override fun onBindViewHolder(holder: ProviderViewHolder, position: Int) {
         // Gets the provider item at the specified position.
@@ -64,7 +64,7 @@ class ProvidersAdapter(private var providers: List<Provider>) :
     }
 
     /**
-     * this function adds an item to the list of providers and notifies the adapter that the data set has changed.
+     * This function adds an item to the list of providers and notifies the adapter that the data set has changed.
      * @param provider The provider to be added to the list.
      *
      */
@@ -74,6 +74,7 @@ class ProvidersAdapter(private var providers: List<Provider>) :
         // Notifies the adapter that the data set has changed.
         notifyDataSetChanged()
     }
+
     /**
      * ProviderViewHolder class represents individual provider items in the RecyclerView adapter.
      *
@@ -95,7 +96,7 @@ class ProvidersAdapter(private var providers: List<Provider>) :
                 Glide.with(binding.providerLogoImageView.context)
                     .load(R.drawable.provider_place_holder)
                     .into(binding.providerLogoImageView)
-            }else{
+            } else {
                 // Load provider logo using Glide library.
                 Glide.with(binding.providerLogoImageView.context)
                     .load("https://image.tmdb.org/t/p/original/${provider.logo_path}")

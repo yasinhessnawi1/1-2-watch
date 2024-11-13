@@ -19,6 +19,7 @@ import kotlinx.coroutines.withContext
 import com.example.a1_2_watch.R
 import com.example.a1_2_watch.models.MediaType
 import com.example.a1_2_watch.utils.NavigationUtils
+import com.example.a1_2_watch.utils.LikeButtonUtils
 
 /**
  * UserPageActivity displays a list of media items that the user has marked as liked.
@@ -29,17 +30,19 @@ class UserPageActivity : AppCompatActivity() {
     private lateinit var binding: UserPageLayoutBinding
     // Creates adapter for displaying a list of liked movies.
     private lateinit var moviesAdapter: MediaAdapter<Movie>
-    // Creates adapter for displaying a list of liked TV Show.
+    // Creates adapter for displaying a list of liked TV Shows.
     private lateinit var showsAdapter: MediaAdapter<Show>
     // Creates adapter for displaying a list of liked anime.
     private lateinit var animeAdapter: MediaAdapter<Anime>
-    // Create sharedPreferences instance for storing and retrieving liked items from persistent storage.
+    // SharedPreferences instance for storing and retrieving liked items from persistent storage.
     private val sharedPreferences by lazy {
         getSharedPreferences("liked_items", Context.MODE_PRIVATE)
     }
+    // LikeButtonUtils for managing like functionality.
+    private val likeButtonUtils = LikeButtonUtils(this)
 
     /**
-     * This function initializes the activity, sets up view bindings, RecyclerView, adapters, loads
+     * This function initializes the activity, sets up view bindings, RecyclerViews, adapters, loads
      * liked items, and configures bottom navigation.
      *
      * @param savedInstanceState Used to restore the activity's previously saved state if available.
@@ -63,8 +66,8 @@ class UserPageActivity : AppCompatActivity() {
     }
 
     /**
-     * This function called when the activity is resumed, and reload liked items every time the
-     * activity is resumed and ensures it shows latest data.
+     * This function called when the activity is resumed, and reloads liked items every time the
+     * activity is resumed to ensure it shows the latest data.
      */
     override fun onResume() {
         super.onResume()
@@ -73,7 +76,7 @@ class UserPageActivity : AppCompatActivity() {
     }
 
     /**
-     * This function sets up adapters for each media type and sets up RecyclerView for horizontal
+     * This function sets up adapters for each media type and sets up RecyclerViews for horizontal
      * scrolling.
      */
     private fun setupAdapters() {
@@ -82,30 +85,29 @@ class UserPageActivity : AppCompatActivity() {
         // Sets up adapter for movies with click listeners
         moviesAdapter = MediaAdapter(
             context = context,
-            // Handle movie item click and navigates to the details page of selected movie.
-            onItemClick = { movie ->  NavigationUtils.navigateToDetails(this, movie.id, MediaType.MOVIES.name) },
-            // Toggles the liked status of the selected movie and refresh the UI..
+            onItemClick = { movie ->
+                NavigationUtils.navigateToDetails(this, movie.id, MediaType.MOVIES.name)
+            },
             onSaveClick = { toggleLikeAndRefresh(it) },
-            // True to allow API fetching for additional details.
-            fetchDetailsFromAPI = true
+            onExpandClick = { expandItem(it) }
         )
         // Sets up adapter for TV Shows with click listeners
         showsAdapter = MediaAdapter(
             context = context,
-            // Handle TV Show item click and navigates to the details page of selected TV Show.
-            onItemClick = { show ->  NavigationUtils.navigateToDetails(this, show.id, MediaType.TV_SHOWS.name) },
-            // Toggles the liked status of the selected TV show and refresh the UI.
+            onItemClick = { show ->
+                NavigationUtils.navigateToDetails(this, show.id, MediaType.TV_SHOWS.name)
+            },
             onSaveClick = { toggleLikeAndRefresh(it) },
-            fetchDetailsFromAPI = true
+            onExpandClick = { expandItem(it) }
         )
         // Sets up adapter for anime with click listeners
         animeAdapter = MediaAdapter(
             context = context,
-            // Handle anime item click and navigates to the details page of selected anime.
-            onItemClick = { anime ->  NavigationUtils.navigateToDetails(this, anime.id, MediaType.ANIME.name) },
-            // Toggles the liked status of the selected anime and refresh the UI.
+            onItemClick = { anime ->
+                NavigationUtils.navigateToDetails(this, anime.id, MediaType.ANIME.name)
+            },
             onSaveClick = { toggleLikeAndRefresh(it) },
-            fetchDetailsFromAPI = true
+            onExpandClick = { expandItem(it) }
         )
         // Sets the layout manager for displaying items horizontally in the liked movies RecyclerView.
         binding.likedMoviesRecyclerView.apply {
@@ -224,52 +226,22 @@ class UserPageActivity : AppCompatActivity() {
      * @param item The media item whose liked status is being toggled.
      */
     private fun toggleLikeAndRefresh(item: Any) {
-        // Create Gson instance for parsing JSON data.
-        val gson = Gson()
-        // Launches a coroutine on the lifecycle scope
-        lifecycleScope.launch(Dispatchers.IO) {
-            // Editor to apply changes to SharedPreferences.
-            val editor = sharedPreferences.edit()
-            when (item) {
-                is Movie -> {
-                    // Return the list of liked movies from the shared preferences.
-                    val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
-                    val likedMovies: MutableList<Movie> = gson.fromJson(likedMoviesJson, object : TypeToken<MutableList<Movie>>() {}.type)
-                    // Remove movie from the list if already liked.
-                    likedMovies.removeIf { it.title == item.title }
-                    // Update the SharedPreferences with modified list.
-                    editor.putString("liked_movies", gson.toJson(likedMovies))
-                    // Save changes.
-                    editor.apply()
-                }
-                is Show -> {
-                    // Return the list of liked TV Show from the shared preferences.
-                    val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
-                    val likedShows: MutableList<Show> = gson.fromJson(likedShowsJson, object : TypeToken<MutableList<Show>>() {}.type)
-                    // Remove TV Show from the list if already liked.
-                    likedShows.removeIf { it.name == item.name }
-                    // Update the SharedPreferences with modified list.
-                    editor.putString("liked_shows", gson.toJson(likedShows))
-                    // Save changes.
-                    editor.apply()
-                }
-                is Anime -> {
-                    // Return the list of liked anime from the shared preferences.
-                    val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
-                    val likedAnime: MutableList<Anime> = gson.fromJson(likedAnimeJson, object : TypeToken<MutableList<Anime>>() {}.type)
-                    // Remove anime from the list if already liked.
-                    likedAnime.removeIf { it.attributes.canonicalTitle == item.attributes.canonicalTitle }
-                    // Update the SharedPreferences with modified list.
-                    editor.putString("liked_anime", gson.toJson(likedAnime))
-                    // Save changes.
-                    editor.apply()
-                }
-            }
-            // Update the UI on main thread after toggling like status.
-            withContext(Dispatchers.Main) {
-                // Reload liked items to reflect changes.
-                loadLikedItems()
-            }
+        // Use LikeButtonUtils to toggle like status
+        likeButtonUtils.toggleLikeToItem(item)
+        // Reload liked items to reflect changes.
+        loadLikedItems()
+    }
+
+    /**
+     * This function handles the expand button click for a media item and toggles the expandable layout.
+     *
+     * @param item The media item whose expandable layout is to be toggled.
+     */
+    private fun expandItem(item: Any) {
+        when (item) {
+            is Movie -> moviesAdapter.toggleItemExpansion(item)
+            is Show -> showsAdapter.toggleItemExpansion(item)
+            is Anime -> animeAdapter.toggleItemExpansion(item)
         }
     }
 

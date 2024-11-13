@@ -24,7 +24,7 @@ class DiscoverAdapter(
 ) : RecyclerView.Adapter<DiscoverAdapter.DiscoverViewHolder>() {
 
     /**
-     * This Function to create a new ViewHolder in the RecycleView for displaying an item.
+     * This Function to create a new ViewHolder in the RecyclerView for displaying an item.
      *
      * @param parent The parent ViewGroup that holds the views.
      * @param viewType The type of the new view.
@@ -38,10 +38,10 @@ class DiscoverAdapter(
     }
 
     /**
-     * This Function to display the data at the specified position in the RecycleView.
+     * This Function to display the data at the specified position in the RecyclerView.
      *
      * @param holder DiscoverViewHolder that holds the UI elements for each item.
-     * @param position Position of the item to be displayed in the RecycleView.
+     * @param position Position of the item to be displayed in the RecyclerView.
      */
     override fun onBindViewHolder(holder: DiscoverViewHolder, position: Int) {
         // Bind the data at the given position.
@@ -83,7 +83,7 @@ class DiscoverAdapter(
         /**
          * This function binds data to the UI elements in the item view based on the media item type.
          *
-         * @param item The media item to bind the data for (Movie, Tv Shows, or Anime).
+         * @param item The media item to bind the data for (Movie, TV Shows, or Anime).
          */
         fun bind(item: Any) {
             // The title of the media item.
@@ -118,7 +118,7 @@ class DiscoverAdapter(
             // Set the title in the UI.
             binding.titleTextView.text = title
 
-            // load the poster image using Glide library.
+            // Load the poster image using Glide library.
             Glide.with(binding.root.context)
                 .load(posterPath ?: "")
                 .into(binding.posterImageView)
