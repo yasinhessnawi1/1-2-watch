@@ -9,6 +9,7 @@ import com.example.a1_2_watch.models.Anime
 import com.example.a1_2_watch.models.Movie
 import com.example.a1_2_watch.models.Show
 import com.example.a1_2_watch.utils.Constants
+import com.example.a1_2_watch.utils.Constants.PLACEHOLDER_URL
 
 /**
  * DiscoverAdapter class for displaying a list of media items as a result of a search query in the RecyclerView.
@@ -24,7 +25,7 @@ class DiscoverAdapter(
 ) : RecyclerView.Adapter<DiscoverAdapter.DiscoverViewHolder>() {
 
     /**
-     * This Function to create a new ViewHolder in the RecyclerView for displaying an item.
+     * This Function to create a new ViewHolder in the RecycleView for displaying an item.
      *
      * @param parent The parent ViewGroup that holds the views.
      * @param viewType The type of the new view.
@@ -38,10 +39,10 @@ class DiscoverAdapter(
     }
 
     /**
-     * This Function to display the data at the specified position in the RecyclerView.
+     * This Function to display the data at the specified position in the RecycleView.
      *
      * @param holder DiscoverViewHolder that holds the UI elements for each item.
-     * @param position Position of the item to be displayed in the RecyclerView.
+     * @param position Position of the item to be displayed in the RecycleView.
      */
     override fun onBindViewHolder(holder: DiscoverViewHolder, position: Int) {
         // Bind the data at the given position.
@@ -83,14 +84,13 @@ class DiscoverAdapter(
         /**
          * This function binds data to the UI elements in the item view based on the media item type.
          *
-         * @param item The media item to bind the data for (Movie, TV Shows, or Anime).
+         * @param item The media item to bind the data for (Movie, Tv Shows, or Anime).
          */
         fun bind(item: Any) {
             // The title of the media item.
             val title: String?
             // The poster path of the media item.
             val posterPath: String?
-
             // Check the type of the media item
             when (item) {
                 is Movie -> {
@@ -115,13 +115,31 @@ class DiscoverAdapter(
                 }
             }
 
-            // Set the title in the UI.
             binding.titleTextView.text = title
 
+            if (!posterPath.isNullOrEmpty()) {
+                Glide.with(binding.root.context)
+                    .load(posterPath)
+                    .into(binding.posterImageView)
+            } else {
+                // Set a placeholder or hide the ImageView
+                Glide.with(binding.root.context)
+                    .load(PLACEHOLDER_URL)
+                    .into(binding.posterImageView)
+            }
+
             // Load the poster image using Glide library.
-            Glide.with(binding.root.context)
-                .load(posterPath ?: "")
-                .into(binding.posterImageView)
+            if (!posterPath.isNullOrEmpty()) {
+                Glide.with(binding.root.context)
+                    .load(posterPath)
+                    .into(binding.posterImageView)
+            } else {
+                // Set a placeholder image or hide the ImageView
+                Glide.with(binding.root.context)
+                    .load(PLACEHOLDER_URL)
+                    .into(binding.posterImageView)
+            }
+
             // Set the click listener on the item view to handle item click events.
             itemView.setOnClickListener { onItemClick(item) }
         }
