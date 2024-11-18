@@ -177,6 +177,9 @@ class DiscoverActivity : AppCompatActivity() {
         binding.searchResultsRecyclerView.visibility = View.VISIBLE
         binding.searchResultsRecyclerView.bringToFront()
         toggleRelatedListsVisibility(false)
+        binding.emptyAnimeTextView.visibility = View.GONE
+        binding.emptyMoviesTextView.visibility = View.GONE
+        binding.emptyTvShowsTextView.visibility = View.GONE
 
         val inputData = workDataOf(
             FetchSearchResultsWorker.KEY_QUERY to trimmedQuery
