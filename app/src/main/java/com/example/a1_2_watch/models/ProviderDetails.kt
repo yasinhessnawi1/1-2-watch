@@ -1,14 +1,16 @@
 package com.example.a1_2_watch.models
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Represents a streaming provider with its name and logo path.
  *
- * @property provider_name The name of the provider.
- * @property logo_path The path to the provider's logo.
+ * @property providerName The name of the provider.
+ * @property logoPath The path to the provider's logo.
  */
 data class Provider(
-    val provider_name: String,
-    val logo_path: String?,
+    @SerializedName("provider_name") val providerName: String,
+    @SerializedName("logo_path") val logoPath: String?
 )
 
 /**
@@ -17,18 +19,17 @@ data class Provider(
  * @property results A map of country codes to watch provider details.
  */
 data class WatchProvidersResponse(
-    val results: Map<String, WatchProviderDetails>
+    @SerializedName("id") val id: Int,
+    @SerializedName("results") val results: Map<String, ProvidersRegion>
 )
 
 /**
  * Details about a watch provider, including a link and available services.
  *
- * @property link URL to the provider page on TMDB.
  * @property flatrate Optional list of streaming services available in the region.
  */
-data class WatchProviderDetails(
-    val link: String,
-    val flatrate: List<Provider>?
+data class ProvidersRegion(
+    @SerializedName("flatrate") val flatrate: List<Provider>? = null,
 )
 
 /**

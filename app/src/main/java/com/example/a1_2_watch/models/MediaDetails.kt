@@ -119,7 +119,6 @@ data class AnimeDetails(
  */
 data class AnimeData(
     val id: String?,
-    val type: String?,
     val links: Links?,
     val attributes: Attributes?
 )
@@ -152,33 +151,17 @@ data class AnimeData(
  * @property coverImage Cover image details.
  */
 data class Attributes(
-    val createdAt: String,
-    val updatedAt: String,
-    val slug: String,
     val synopsis: String?,
-    val description: String?,
-    val coverImageTopOffset: Int,
-    val titles: Titles,
-    val canonicalTitle: String,
-    val abbreviatedTitles: List<String>,
+    val canonicalTitle: String?,
     val averageRating: String,
-    val ratingFrequencies: Map<String, String>,
-    val userCount: Int,
-    val favoritesCount: Int,
     val startDate: String?,
     val endDate: String?,
     val nextRelease: String?,
-    val popularityRank: Int,
-    val ratingRank: Int,
-    val ageRating: String?,
-    val ageRatingGuide: String?,
     val subtype: String,
     val status: String,
     val posterImage: PosterImage?,
-    val coverImage: CoverImage?,
     val episodeCount: String?,
     val episodeLength: Int
-
 )
 
 /**
@@ -204,8 +187,6 @@ data class Titles(
  * @property original Original image URL.
  */
 data class PosterImage(
-    val tiny: String?,
-    val large: String?,
     val small: String?,
     val medium: String?,
     val original: String?

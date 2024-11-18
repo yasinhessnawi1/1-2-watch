@@ -5,7 +5,7 @@ import android.content.Intent
 import com.example.a1_2_watch.ui.DetailsActivity
 import com.example.a1_2_watch.ui.DiscoverActivity
 import com.example.a1_2_watch.ui.HomeActivity
-import com.example.a1_2_watch.ui.UserPageActivity
+import com.example.a1_2_watch.ui.UserLikedActivity
 
 /**
  * NavigationUtils provides a utility object for navigation functionality for the main activities
@@ -56,7 +56,7 @@ object NavigationUtils {
      */
     fun navigateToUser(activity: Activity) {
         // Create intent to navigate to User Page activity
-        val intent = Intent(activity, UserPageActivity::class.java)
+        val intent = Intent(activity, UserLikedActivity::class.java)
         // Start UserPageActivity with our created intent.
         activity.startActivity(intent)
     }

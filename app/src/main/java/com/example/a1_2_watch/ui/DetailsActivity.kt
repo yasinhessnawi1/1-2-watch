@@ -1,24 +1,34 @@
+// DetailsActivity.kt
 package com.example.a1_2_watch.ui
 
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.work.*
 import com.bumptech.glide.Glide
 import com.example.a1_2_watch.R
 import com.example.a1_2_watch.adapters.ProvidersAdapter
 import com.example.a1_2_watch.databinding.DetailsLayoutBinding
 import com.example.a1_2_watch.models.*
-import com.example.a1_2_watch.repository.DetailsRepository
 import com.example.a1_2_watch.utils.Constants
 import com.example.a1_2_watch.utils.LikeButtonUtils
 import com.example.a1_2_watch.utils.NavigationUtils
+import com.example.a1_2_watch.workers.FetchDetailsWorker
+import com.example.a1_2_watch.workers.FetchProvidersWorker
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
-import kotlin.collections.joinToString
 
 /**
  * DetailsActivity responsible for displaying detailed information about a selected media item
- * (movie, TV Show, and anime), and handles fetching details, managing user likes , displaying
+ * (movie, TV Show, and anime), and handles fetching details, managing user likes, displaying
  * watch providers information, and setting up UI elements.
  */
 class DetailsActivity : AppCompatActivity() {
@@ -26,18 +36,18 @@ class DetailsActivity : AppCompatActivity() {
     private lateinit var binding: DetailsLayoutBinding
     // Creates adapter for displaying available streaming providers.
     private lateinit var providersAdapter: ProvidersAdapter
-    // Creates DetailsRepository instance for fetching media details.
-    private val detailsRepository = DetailsRepository()
-    // Gets the User's country code for region provides.
+    // Gets the User's country code for region-based filtering.
     private var countryCode: String = Locale.getDefault().country
-    // Creates likeButtonUtils for managing liked items.
-    private val likeButtonUtils = LikeButtonUtils(this)
+    // Creates LikeButtonUtils for managing liked items.
+    private lateinit var likeButtonUtils: LikeButtonUtils
     // The ID of the selected media item.
     private var mediaId: Int = -1
     // The type of the media (MOVIES, TV_SHOWS, ANIME)
     private lateinit var mediaType: MediaType
     // Holds the fetched details of the media item.
     private var detailedItem: Any? = null
+    // Gson instance for JSON parsing
+    private val gson = Gson()
 
     /**
      * This function initializes the activity, setting up the layout, event listeners and fetching
@@ -57,6 +67,9 @@ class DetailsActivity : AppCompatActivity() {
         binding.goBackButton.setOnClickListener {
             finish()
         }
+
+        // Initialize LikeButtonUtils for managing liked items.
+        likeButtonUtils = LikeButtonUtils(this)
         // Setup Bottom Navigation
         setupBottomNavigation()
         // Gets the media ID and type from the intent extras
@@ -109,7 +122,7 @@ class DetailsActivity : AppCompatActivity() {
      * Determine which provider fetching method to call for anime or other media types.
      */
     private fun fetchProvidersBasedOnMediaType() {
-        // If the media type is ANIME, fetch streaming providers based on his ID
+        // If the media type is ANIME, fetch streaming providers based on its ID
         if (mediaType == MediaType.ANIME) {
             // Convert the media ID to string and pass it to the fetch method.
             fetchStreamingProviders(mediaId.toString())
@@ -120,39 +133,68 @@ class DetailsActivity : AppCompatActivity() {
     }
 
     /**
-     * fetchDetails fetches detailed information for the selected media item and updates the UI based
+     * fetchDetails fetches detailed information for the selected media item using WorkManager and updates the UI based
      * on its type.
      */
     private fun fetchDetails() {
-        // Fetch details for the media item by using its ID and type.
-        detailsRepository.fetchDetails(mediaId, mediaType) { data ->
-            // Runs UI updates on the main thread.
-            runOnUiThread {
-                // Create variable to store the fetched details.
-                detailedItem = data
-                // Check the data type, updates the UI based on its type
-                when (data) {
-                    is MovieDetails -> {
-                        // Update UI, sets like button status, sets toggle behavior for the like button.
-                        updateMovieDetails(data)
-                        setLikeButtonStatus(data)
-                        binding.saveButton.setOnClickListener { toggleLike(data) }
+        val inputData = workDataOf(
+            FetchDetailsWorker.KEY_MEDIA_TYPE to mediaType.name,
+            FetchDetailsWorker.KEY_MEDIA_ID to mediaId
+        )
+
+        val fetchDetailsWork = OneTimeWorkRequestBuilder<FetchDetailsWorker>()
+            .setInputData(inputData)
+            .build()
+
+        WorkManager.getInstance(this)
+            .enqueue(fetchDetailsWork)
+
+        WorkManager.getInstance(this)
+            .getWorkInfoByIdLiveData(fetchDetailsWork.id)
+            .observe(this, Observer { workInfo ->
+                if (workInfo != null && workInfo.state.isFinished) {
+                    if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                        val resultJson = workInfo.outputData.getString(FetchDetailsWorker.KEY_RESULT)
+                        handleDetailsResult(resultJson)
+                    } else {
+                        // Handle failure
+                        showError()
                     }
-                    is ShowDetails -> {
-                        // Update UI, sets like button status, sets toggle behavior for the like button.
-                        updateTVShowDetails(data)
-                        setLikeButtonStatus(data)
-                        binding.saveButton.setOnClickListener { toggleLike(data) }
-                    }
-                    is AnimeDetails -> {
-                        // Update UI, sets like button status, sets toggle behavior for the like button.
-                        updateAnimeDetails(data)
-                        setLikeButtonStatus(data)
-                        binding.saveButton.setOnClickListener { toggleLike(data) }
-                    }
-                    // Displays error if data type is not supported.
-                    else -> showError()
                 }
+            })
+    }
+
+    /**
+     * This function handles the result from the FetchDetailsWorker and updates the UI accordingly.
+     *
+     * @param resultJson The JSON string containing the fetched details.
+     */
+    private fun handleDetailsResult(resultJson: String?) {
+        if (resultJson == null) {
+            showError()
+            return
+        }
+        when (mediaType) {
+            MediaType.MOVIES -> {
+                val movieDetails = gson.fromJson(resultJson, MovieDetails::class.java)
+                detailedItem = movieDetails
+                updateMovieDetails(movieDetails)
+                setLikeButtonStatus(movieDetails)
+                binding.saveButton.setOnClickListener { toggleLike(movieDetails) }
+            }
+            MediaType.TV_SHOWS -> {
+                val showDetails = gson.fromJson(resultJson, ShowDetails::class.java)
+                detailedItem = showDetails
+                updateTVShowDetails(showDetails)
+                setLikeButtonStatus(showDetails)
+                binding.saveButton.setOnClickListener { toggleLike(showDetails) }
+            }
+            MediaType.ANIME -> {
+                val animeDetails = gson.fromJson(resultJson, AnimeDetails::class.java)
+                detailedItem = animeDetails
+                updateAnimeDetails(animeDetails)
+                setLikeButtonStatus(animeDetails)
+                binding.saveButton.setOnClickListener { toggleLike(animeDetails) }
             }
         }
     }
@@ -223,9 +265,9 @@ class DetailsActivity : AppCompatActivity() {
         // Builds and sets the first air date for the TV Show.
         binding.releaseDateTextView.text = buildString {
             append("First Air Date: ")
-            append(tvShow.first_air_date )
+            append(tvShow.first_air_date)
         }
-        // Builds and sets the number of sessions for the TV Show.
+        // Builds and sets the number of seasons for the TV Show.
         binding.seasonCountTextView.text = buildString {
             append("Seasons: ")
             append(tvShow.number_of_seasons)
@@ -233,7 +275,7 @@ class DetailsActivity : AppCompatActivity() {
         // Builds and sets the number of episodes for the TV Show.
         binding.episodeCountTextView.text = buildString {
             append("Episodes: ")
-            append(tvShow.number_of_episodes )
+            append(tvShow.number_of_episodes)
         }
         // Builds and sets the runtime for episodes for the TV Show in minutes.
         binding.runtimeTextView.text = buildString {
@@ -243,7 +285,7 @@ class DetailsActivity : AppCompatActivity() {
         // Builds and sets the average rating for the TV Show.
         binding.mediaRatingTextView.text =
             String.format(Locale.getDefault(), "%.1f", tvShow.vote_average)
-        // Checks if the tv Show has ended, if so , displays the last air date
+        // Checks if the TV Show has ended, if so, displays the last air date
         if (tvShow.status == "Ended") {
             binding.endDateTextView.text = buildString {
                 append("Last Air Date: ")
@@ -252,7 +294,7 @@ class DetailsActivity : AppCompatActivity() {
             // And hides the next episode information.
             binding.nextReleaseLayout.visibility = View.GONE
         } else {
-            // Hides the end date if the tv Show has not ended
+            // Hides the end date if the TV Show has not ended
             binding.endDateTextView.visibility = View.GONE
             // Sets an icon for the upcoming episode's air date.
             Glide.with(this)
@@ -309,7 +351,7 @@ class DetailsActivity : AppCompatActivity() {
             // Builds and sets the end date of the anime if available.
             binding.endDateTextView.text = buildString {
                 append("End Date: ")
-                append(attributes.startDate ?: getString(R.string.unknown))
+                append(attributes.endDate ?: getString(R.string.unknown))
             }
             // Sets the runtime for each episode of the anime.
             val runtime = attributes.episodeLength.let { "$it min" }
@@ -333,7 +375,7 @@ class DetailsActivity : AppCompatActivity() {
                 "%.1f",
                 attributes.averageRating.toFloat() / 10
             )
-            // Checks if there's an end date, if so , hides the next episode details.
+            // Checks if there's an end date, if so, hides the next episode details.
             if (attributes.endDate != null) {
                 binding.endDateTextView.text = buildString {
                     append("Last Air Date: ")
@@ -364,7 +406,6 @@ class DetailsActivity : AppCompatActivity() {
                 .load(attributes.posterImage?.medium)
                 .into(binding.movieImageView)
 
-
             // Hide Movie-specific and TV Show-specific fields which are not relevant for anime.
             binding.genresTextView.visibility = View.GONE
             binding.revenueTextView.visibility = View.GONE
@@ -376,8 +417,8 @@ class DetailsActivity : AppCompatActivity() {
     }
 
     /**
-     * This function displays an error message when media details are unavailable, and hides detailed
-     * fields and showing default error messages.
+     * Displays an error message when media details are unavailable, and hides detailed
+     * fields and shows default error messages.
      */
     private fun showError() {
         // Set a placeholder text in the (title, description) TextView indicating no title or overview is available.
@@ -396,82 +437,141 @@ class DetailsActivity : AppCompatActivity() {
     }
 
     /**
-     * This function fetches streaming providers for an anime by its ID, if available, retrieves
-     * streamer names, otherwise, call handleNoProvidersAvailable to display an appropriate message.
+     * This function fetches streaming providers for an anime by its ID using WorkManager.
      *
      * @param animeId The ID of the anime for which streaming providers are to be fetched.
      */
     private fun fetchStreamingProviders(animeId: String) {
-        // Fetches the streaming links if available by given anime ID.
-        detailsRepository.fetchAnimeStreamingLinks(animeId) { streamingLinks ->
-            // First checks if the streaming links are available.
-            if (!streamingLinks.isNullOrEmpty()) {
-                // Iterate through each streaming link to fetch provider details.
-                for (link in streamingLinks) {
-                    fetchStreamerName(link)
+        val inputData = workDataOf(
+            FetchProvidersWorker.KEY_MEDIA_TYPE to MediaType.ANIME.name,
+            FetchProvidersWorker.KEY_MEDIA_ID to animeId.toInt()
+            // No country code is passed for Anime as per requirement
+        )
+
+        val fetchProvidersWork = OneTimeWorkRequestBuilder<FetchProvidersWorker>()
+            .setInputData(inputData)
+            .build()
+
+        WorkManager.getInstance(this)
+            .enqueue(fetchProvidersWork)
+
+        WorkManager.getInstance(this)
+            .getWorkInfoByIdLiveData(fetchProvidersWork.id)
+            .observe(this, Observer { workInfo ->
+                if (workInfo != null && workInfo.state.isFinished) {
+                    if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                        val resultJson = workInfo.outputData.getString(FetchProvidersWorker.KEY_RESULT)
+                        handleProvidersResult(resultJson)
+                    } else {
+                        // Handle failure
+                        handleNoProvidersAvailable()
+                    }
                 }
-            } else {
-                // Call this method to handle the case no providers are available.
-                handleNoProvidersAvailable()
-            }
-        }
+            })
     }
 
     /**
-     * This function fetches the name of the streaming provider based on the given streaming link.
-     * Adds the provider to the adapter if the site name is available.
-     *
-     * @param streamingLink The streaming link used to gets the provider's name.
-     */
-    private fun fetchStreamerName(streamingLink: StreamingLink) {
-        // Gets the streaming link ID.
-        val streamerLinkId = streamingLink.id
-        // Gets the streamer details based on the streaming link ID.
-        detailsRepository.fetchStreamerDetails(streamerLinkId) { streamerDetailsResponse ->
-            // Gets the streamer details.
-            val streamer = streamerDetailsResponse?.data
-            streamer?.attributes?.siteName?.let { siteName ->
-                val provider = Provider(siteName, null)
-                // Adds the provider to the providersAdapter to display it.
-                providersAdapter.addProvider(provider)
-            }
-        }
-    }
-
-    /**
-     * This function fetches watch providers based on the media type and ID
-     * This function works only to fetch the movies and TV shows providers.
+     * This function fetches watch providers for movies and TV shows using WorkManager.
+     * Updated to pass the country code for region-based filtering.
      */
     private fun fetchWatchProviders() {
-        // Gets the watch providers based on the media type and ID.
-        detailsRepository.fetchWatchProviders(mediaId, mediaType) { watchProvidersResponse ->
-            // Checks if the response is not null.
-            if (watchProvidersResponse != null) {
-                // Gets the available regions from the response.
-                val availableRegions = watchProvidersResponse.results.keys
-                // Sets the region to user's country.
-                val region = if (availableRegions.contains(countryCode)) {
-                    countryCode
-                } else {
-                    // If the region country if not available, use 'US' country code.
-                    "US"
+        // **UPDATED**: Include countryCode in inputData for Movies and TV Shows
+        val inputData = workDataOf(
+            FetchProvidersWorker.KEY_MEDIA_TYPE to mediaType.name,
+            FetchProvidersWorker.KEY_MEDIA_ID to mediaId,
+            FetchProvidersWorker.KEY_COUNTRY_CODE to countryCode // Pass the country code here
+        )
+
+        val fetchProvidersWork = OneTimeWorkRequestBuilder<FetchProvidersWorker>()
+            .setInputData(inputData)
+            .build()
+
+        // **OPTIONAL**: Use enqueueUniqueWork to prevent duplicate workers for the same media type and ID
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork(
+                "fetch_providers_${mediaType.name}_$mediaId",
+                ExistingWorkPolicy.REPLACE,
+                fetchProvidersWork
+            )
+
+        WorkManager.getInstance(this)
+            .getWorkInfoByIdLiveData(fetchProvidersWork.id)
+            .observe(this, Observer { workInfo ->
+                if (workInfo != null && workInfo.state.isFinished) {
+                    if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                        val resultJson = workInfo.outputData.getString(FetchProvidersWorker.KEY_RESULT)
+                        handleProvidersResult(resultJson)
+                    } else {
+                        // Handle failure
+                        handleProviderFetchError()
+                    }
                 }
-                val providers = watchProvidersResponse.results[region]
-                // If flatrate providers are available, update adapter
-                if (providers?.flatrate?.isNotEmpty() == true) {
-                    providersAdapter.updateProviders(providers.flatrate)
-                    // And hide no providers message.
+            })
+    }
+
+    /**
+     * This function handles the result from FetchProvidersWorker and updates the UI accordingly.
+     *
+     * @param resultJson The JSON string containing the providers information.
+     */
+
+    private fun handleProvidersResult(resultJson: String?) {
+        if (resultJson == null || resultJson.isEmpty()) {
+            handleNoProvidersAvailable()
+            return
+        }
+
+
+        when (mediaType) {
+            MediaType.ANIME -> {
+                val type = object : TypeToken<List<Provider>>() {}.type
+                val providers: List<Provider> = gson.fromJson(resultJson, type)
+                if (providers.isNotEmpty()) {
+                    providersAdapter.updateProviders(providers)
                     binding.noProvidersTextView.visibility = View.GONE
                 } else {
-                    // Handle the case where no providers are available
                     handleNoProvidersAvailable()
                 }
-            } else {
-                // Handle the case of an error fetching providers
-                handleProviderFetchError()
+            }
+            MediaType.MOVIES, MediaType.TV_SHOWS -> {
+                try {
+                    val watchProvidersResponse = gson.fromJson(resultJson, WatchProvidersResponse::class.java)
+                    val results = watchProvidersResponse.results
+
+                    if (results.isNullOrEmpty()) {
+                        handleNoProvidersAvailable()
+                        return
+                    }
+
+                    // Attempt to find providers under the country code, "US", or "ALL"
+                    val possibleKeys = listOf(countryCode, "US", "ALL")
+                    var providersFound = false
+
+                    for (key in possibleKeys) {
+                        val providersRegion = results[key]
+                        if (providersRegion != null) {
+                            val providers = providersRegion.flatrate
+                            if (!providers.isNullOrEmpty()) {
+                                providersAdapter.updateProviders(providers)
+                                binding.noProvidersTextView.visibility = View.GONE
+                                providersFound = true
+                                break
+                            }
+                        }
+                    }
+
+                    if (!providersFound) {
+                        handleNoProvidersAvailable()
+                    }
+
+                } catch (e: Exception) {
+                    handleProviderFetchError()
+                }
             }
         }
     }
+
+
 
     /**
      * Handles the case where no streaming providers are available, and displays a message in the
@@ -503,49 +603,15 @@ class DetailsActivity : AppCompatActivity() {
      *                     , ShowDetails, or AnimeDetails instance.
      */
     private fun toggleLike(detailedItem: Any) {
-        // First creates a minimal item instance based on the type of detailed item.
-        val minimalItem: Any? = when (detailedItem) {
-            is MovieDetails -> Movie(
-                id = detailedItem.id,
-                title = detailedItem.title,
-                // If no overview is available then uses an empty overview.
-                overview = detailedItem.overview ?: "",
-                poster_path = detailedItem.poster_path,
-                vote_average = detailedItem.vote_average,
-                release_date = detailedItem.release_date,
-                // Sets the item as liked.
-                isLiked = true
-            )
-            is ShowDetails -> Show(
-                id = detailedItem.id,
-                name = detailedItem.name,
-                // If no overview is available then uses an empty overview.
-                overview = detailedItem.overview ?: "",
-                poster_path = detailedItem.poster_path,
-                vote_average = detailedItem.vote_average,
-                first_air_date = detailedItem.first_air_date,
-                // Sets the item as liked.
-                isLiked = true
-            )
-            is AnimeDetails -> {
-                // Extract the anime ID and attributes, checking for non-null values before creating an Anime instance.
-                val animeId = detailedItem.data?.id?.toInt()
-                val attributes = detailedItem.data?.attributes
-                if (animeId != null && attributes != null) {
-                    Anime(id = animeId, attributes = attributes, isLiked = true)
-                } else null // Returns null if the ID or attributes are missing.
-            }
-            // Returns null for unsupported types.
-            else -> null
-        }
-        // Now if the item is a valid media type, toggle its like status and update the UI icon.
-        if (minimalItem is Movie || minimalItem is Show || minimalItem is Anime) {
-            // Toggles like status from the shared preferences.
-            likeButtonUtils.toggleLikeToItem(minimalItem)
-            // Update icon after toggling
+        lifecycleScope.launch {
+            // Toggle like status of the item
+            likeButtonUtils.toggleLikeToItem(detailedItem)
+
+            // Update the like button status
             setLikeButtonStatus(detailedItem)
         }
     }
+
 
     /**
      * This function updates the like button icon to reflect the current status of detailed item.
@@ -553,55 +619,16 @@ class DetailsActivity : AppCompatActivity() {
      * @param detailedItem The detailed object of the media item to check like status for.
      */
     private fun setLikeButtonStatus(detailedItem: Any) {
-        // Check the like status of the media item and assign it to isLiked.
-        val isLiked = when (detailedItem) {
-            // Converting the MovieDetails into a minimal Movie object.
-            is MovieDetails -> likeButtonUtils.isItemLiked(
-                Movie(
-                    id = detailedItem.id,
-                    title = detailedItem.title,
-                    // If overview is null then use an empty string.
-                    overview = detailedItem.overview ?: "",
-                    // If poster is null then use an empty string
-                    poster_path = detailedItem.poster_path ?: "",
-                    vote_average = detailedItem.vote_average,
-                    release_date = detailedItem.release_date
+        lifecycleScope.launch {
+            val isLiked = likeButtonUtils.isItemLiked(detailedItem)
+            withContext(Dispatchers.Main) {
+                binding.saveButton.setImageResource(
+                    if (isLiked) R.drawable.ic_heart else R.drawable.ic_heart_outline
                 )
-            )
-            // Converting the ShowDetails into a minimal Show object.
-            is ShowDetails -> likeButtonUtils.isItemLiked(
-                Show(
-                    id = detailedItem.id,
-                    name = detailedItem.name,
-                    // If overview is null then use an empty string.
-                    overview = detailedItem.overview ?: "",
-                    // If poster is null then use an empty string
-                    poster_path = detailedItem.poster_path ?: "",
-                    vote_average = detailedItem.vote_average,
-                    first_air_date = detailedItem.first_air_date
-                )
-            )
-            // Converting the AnimeDetails into a minimal Anime object.
-            is AnimeDetails -> {
-                // Checking for non-null values before creating an Anime instance.
-                val animeId = detailedItem.data?.id?.toInt()
-                val title = detailedItem.data?.attributes?.canonicalTitle
-                if (animeId != null && title != null) {
-                    likeButtonUtils.isItemLiked(
-                        Anime(id = animeId, attributes = detailedItem.data.attributes,
-                            // Sets the initial isLiked status to false.
-                            isLiked = false)
-                    )
-                } else false // Return false if either animeId or title is unavailable.
             }
-            // Sets like status to false for unsupported types.
-            else -> false
         }
-        // Update the like button icon based on the isLiked status.
-        binding.saveButton.setImageResource(
-            if (isLiked) R.drawable.ic_heart else R.drawable.ic_heart_outline
-        )
     }
+
 
     /**
      * This function sets up the bottom navigation bar, configures each tab with its navigation behavior.
@@ -611,7 +638,7 @@ class DetailsActivity : AppCompatActivity() {
         val bottomNavigationView = binding.bottomNavigationView
         // Disable group checkable behavior, ensuring no selected item in the navigation bar.
         bottomNavigationView.menu.setGroupCheckable(0, false, true)
-        // Sets the item selected listener to handel navigation.
+        // Sets the item selected listener to handle navigation.
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.home -> {

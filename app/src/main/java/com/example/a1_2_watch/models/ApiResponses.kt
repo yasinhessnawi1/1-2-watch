@@ -1,12 +1,14 @@
 package com.example.a1_2_watch.models
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Response model for a list of movies.
  *
  * @property results The list of movies to be returned from the API.
  */
 data class MovieResponse(
-    val results: List<Movie>
+    @SerializedName("results") val results: List<Movie>
 )
 
 /**
@@ -15,7 +17,7 @@ data class MovieResponse(
  * @property results The list of TV shows to be returned from the API.
  */
 data class ShowResponse(
-    val results: List<Show>
+    @SerializedName("results") val results: List<Show>
 )
 
 /**
@@ -24,5 +26,5 @@ data class ShowResponse(
  * @property data The list of anime to be returned from the API.
  */
 data class AnimeResponse(
-    val data: List<Anime>
+    @SerializedName("data") val data: List<Anime>
 )

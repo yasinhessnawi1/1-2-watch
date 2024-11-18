@@ -1,104 +1,164 @@
+// LikeButtonUtils.kt
 package com.example.a1_2_watch.utils
 
 import android.content.Context
-import com.example.a1_2_watch.models.Movie
-import com.example.a1_2_watch.models.Show
+import android.content.SharedPreferences
 import com.example.a1_2_watch.models.Anime
+import com.example.a1_2_watch.models.AnimeDetails
+import com.example.a1_2_watch.models.Movie
+import com.example.a1_2_watch.models.MovieDetails
+import com.example.a1_2_watch.models.Show
+import com.example.a1_2_watch.models.ShowDetails
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-/**
- * LikeButtonUtils class for managing the like status of media items (movies, shows, and anime).
- * This class stores liked items in shared preferences and provides functions for toggling and
- * checking the like status of items.
- *
- * @param context The context from which the shared preferences are accessed.
- */
 class LikeButtonUtils(private val context: Context) {
-    // Gson object for converting objects to/from JSON.
-    val gson = Gson()
-    // lazy-load shared preferences instance for storing liked items.
-    val sharedPreferences by lazy {
-        context.getSharedPreferences("liked_items", Context.MODE_PRIVATE)
-    }
 
-    /**
-     * This function toggles like status of a given media item and adds the item to the liked list
-     * if not already liked, or removes it if it is already liked.
-     *
-     * @param item The media item to toggle like status for.
-     */
-    fun toggleLikeToItem(item: Any) {
-        // Editor to apply changes to SharedPreferences.
-        val editor = sharedPreferences.edit()
+    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("liked_items", Context.MODE_PRIVATE)
+    private val gson = Gson()
+
+    suspend fun toggleLikeToItem(item: Any) = withContext(Dispatchers.IO) {
         when (item) {
-            is Movie -> {
-                // Return the list of liked movies from the shared preferences.
-                val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
-                val likedMovies: MutableList<Movie> = gson.fromJson(
-                        likedMoviesJson, object : TypeToken<MutableList<Movie>>() {}.type
-                    )
-
-                // Toggle like status based on if the item exists in the liked list or not.
-                val isRemoved = likedMovies.removeIf { it.title == item.title }
-                if (!isRemoved) {
-                    item.isLiked = true
-                    // Add the item if it was not existed in the liked list.
-                    likedMovies.add(item)
-                } else {
-                    item.isLiked = false
-                }
-
-                // Save the updated liked movies list to SharedPreferences.
-                editor.putString("liked_movies", gson.toJson(likedMovies))
-                editor.apply()
+            is Movie -> toggleLike(item, "liked_movies")
+            is MovieDetails -> {
+                val minimalItem = Movie(
+                    id = item.id,
+                    title = item.title,
+                    overview = item.overview ?: "",
+                    poster_path = item.poster_path,
+                    vote_average = item.vote_average,
+                    release_date = item.release_date,
+                    isLiked = true
+                )
+                toggleLike(minimalItem, "liked_movies")
             }
-
-            is Show -> {
-                // Return the list of liked TV shows from the shared preferences.
-                val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
-                val likedShows: MutableList<Show> = gson.fromJson(
-                        likedShowsJson, object : TypeToken<MutableList<Show>>() {}.type
-                    )
-
-                // Toggle like status based on if the item exists in the liked list or not.
-                val isRemoved = likedShows.removeIf { it.name == item.name }
-                if (!isRemoved) {
-                    item.isLiked = true
-                    // Add the item if it was not existed in the liked list.
-                    likedShows.add(item)
-                } else {
-                    item.isLiked = false
-                }
-
-                // Save the updated liked TV shows list to SharedPreferences.
-                editor.putString("liked_shows", gson.toJson(likedShows))
-                editor.apply()
+            is Show -> toggleLike(item, "liked_shows")
+            is ShowDetails -> {
+                val minimalItem = Show(
+                    id = item.id,
+                    name = item.name,
+                    overview = item.overview ?: "",
+                    poster_path = item.poster_path,
+                    vote_average = item.vote_average,
+                    first_air_date = item.first_air_date,
+                    isLiked = true
+                )
+                toggleLike(minimalItem, "liked_shows")
             }
-
-            is Anime -> {
-                // Return the list of liked anime from the shared preferences.
-                val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
-                val likedAnime: MutableList<Anime> = gson.fromJson(
-                        likedAnimeJson, object : TypeToken<MutableList<Anime>>() {}.type
-                    )
-
-                // Toggle like status based on if the item exists in the liked list or not.
-                val isRemoved = likedAnime.removeIf { it.attributes.canonicalTitle == item.attributes.canonicalTitle }
-                if (!isRemoved) {
-                    item.isLiked = true
-                    // Add the item if it was not existed in the liked list.
-                    likedAnime.add(item)
-                } else {
-                    item.isLiked = false
+            is Anime -> toggleLike(item, "liked_anime")
+            is AnimeDetails -> {
+                val animeId = item.data?.id?.toIntOrNull()
+                val attributes = item.data?.attributes
+                if (animeId != null && attributes != null) {
+                    val minimalItem = Anime(id = animeId, attributes = attributes, isLiked = true)
+                    toggleLike(minimalItem, "liked_anime")
                 }
-
-                // Save the updated liked anime list to SharedPreferences.
-                editor.putString("liked_anime", gson.toJson(likedAnime))
-                editor.apply()
             }
         }
     }
+
+
+    private fun toggleLike(item: Any, key: String) {
+        // Retrieve the existing liked items as a list
+        val likedItemsJson = sharedPreferences.getString(key, null)
+        val likedItems = if (likedItemsJson != null) {
+            gson.fromJson<MutableList<String>>(likedItemsJson, object : TypeToken<MutableList<String>>() {}.type)
+        } else {
+            mutableListOf()
+        }
+
+        // Deserialize existing items
+        val likedItemsList = likedItems.mapNotNull { json ->
+            when (key) {
+                "liked_movies" -> gson.fromJson(json, Movie::class.java)
+                "liked_shows" -> gson.fromJson(json, Show::class.java)
+                "liked_anime" -> gson.fromJson(json, Anime::class.java)
+                else -> null
+            }
+        }.toMutableList()
+
+        // Check if the item is already liked
+        val itemId = when (item) {
+            is Movie -> item.id
+            is Show -> item.id
+            is Anime -> item.id
+            else -> return
+        }
+
+        val existingItemIndex = likedItemsList.indexOfFirst { likedItem ->
+            when (likedItem) {
+                is Movie -> likedItem.id == itemId
+                is Show -> likedItem.id == itemId
+                is Anime -> likedItem.id == itemId
+                else -> false
+            }
+        }
+
+        if (existingItemIndex != -1) {
+            // Item is already liked, remove it
+            likedItemsList.removeAt(existingItemIndex)
+        } else {
+            // Item is not liked, add it to the beginning
+            likedItemsList.add(0, item)
+        }
+
+        // Serialize the updated liked items back to JSON strings
+        val updatedJsonList = likedItemsList.map { gson.toJson(it) }
+
+        // Save back to SharedPreferences
+        val updatedJson = gson.toJson(updatedJsonList)
+        sharedPreferences.edit().putString(key, updatedJson).apply()
+    }
+
+
+
+    suspend fun getLikedMovies(): List<Movie> = withContext(Dispatchers.IO) {
+        val likedItemsJson = sharedPreferences.getString("liked_movies", null)
+        val likedItems = if (likedItemsJson != null) {
+            gson.fromJson<MutableList<String>>(likedItemsJson, object : TypeToken<MutableList<String>>() {}.type)
+        } else {
+            mutableListOf()
+        }
+
+        likedItems.mapNotNull { json ->
+            val movie = gson.fromJson(json, Movie::class.java)
+            movie.isLiked = true
+            movie
+        }
+    }
+
+
+  suspend fun getLikedShows(): List<Show> = withContext(Dispatchers.IO) {
+        val likedItemsJsonSet = sharedPreferences.getString("liked_shows", null)
+        val likedItems = if (likedItemsJsonSet != null) {
+          gson.fromJson<MutableList<String>>(likedItemsJsonSet, object : TypeToken<MutableList<String>>() {}.type)
+      } else {
+          mutableListOf()
+      }
+      likedItems.mapNotNull { json ->
+          val show = gson.fromJson(json, Show::class.java)
+          show.isLiked = true
+          show
+      }
+
+    }
+
+    suspend fun getLikedAnime(): List<Anime> = withContext(Dispatchers.IO) {
+        val likedAnimeJsonSet = sharedPreferences.getString("liked_anime", null)
+        val likedAnime = if (likedAnimeJsonSet != null) {
+            gson.fromJson<MutableList<String>>(likedAnimeJsonSet, object : TypeToken<MutableList<String>>() {}.type)
+        } else {
+            mutableListOf()
+        }
+        likedAnime.mapNotNull { json ->
+            val anime = gson.fromJson(json, Anime::class.java)
+            anime.isLiked = true
+            anime
+        }
+    }
+
 
     /**
      * This function checks if a given media item is in the liked list or not.
@@ -106,39 +166,40 @@ class LikeButtonUtils(private val context: Context) {
      * @param item The media item to check the like status for.
      * @return Boolean indicating whether the item is liked or not.
      */
-    fun isItemLiked(item: Any): Boolean {
-        return when (item) {
+    suspend fun isItemLiked(item: Any): Boolean = withContext(Dispatchers.IO) {
+        when (item) {
             is Movie -> {
-                // Return the list of liked movies from the shared preferences.
-                val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
-                val likedMovies: List<Movie> =
-                    gson.fromJson(likedMoviesJson, object : TypeToken<List<Movie>>() {}.type
-                    )
-                // Check if the item is already in the list of liked movies
-                likedMovies.any { it.title == item.title }
+                val likedMovies = getLikedMovies()
+                likedMovies.any { it.id == item.id }
             }
-
+            is MovieDetails -> {
+                val likedMovies = getLikedMovies()
+                likedMovies.any { it.id == item.id }
+            }
             is Show -> {
-                // Return the list of liked TV shows from the shared preferences.
-                val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
-                val likedShows: List<Show> = gson.fromJson(
-                        likedShowsJson, object : TypeToken<List<Show>>() {}.type
-                    )
-                // Check if the item is already in the list of liked TV shows.
-                likedShows.any { it.name == item.name }
+                val likedShows = getLikedShows()
+                likedShows.any { it.id == item.id }
             }
-
+            is ShowDetails -> {
+                val likedShows = getLikedShows()
+                likedShows.any { it.id == item.id }
+            }
             is Anime -> {
-                // Return the list of liked anime from the shared preferences.
-                val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
-                val likedAnime: List<Anime> = gson.fromJson(
-                        likedAnimeJson, object : TypeToken<List<Anime>>() {}.type
-                    )
-                // Check if the item is already in the list of liked anime.
-                likedAnime.any { it.attributes.canonicalTitle == item.attributes.canonicalTitle }
+                val likedAnime = getLikedAnime()
+                likedAnime.any { it.id == item.id }
             }
-            // Return false if the item title is not recognized.
+            is AnimeDetails -> {
+                val animeId = item.data?.id?.toIntOrNull()
+                if (animeId != null) {
+                    val likedAnime = getLikedAnime()
+                    likedAnime.any { it.id == animeId }
+                } else {
+                    false
+                }
+            }
             else -> false
         }
     }
+
 }
+

@@ -6,8 +6,8 @@
         android:title="@string/home" />
     <item
         android:id="@+id/user"
-        android:icon="@drawable/user"
-        android:title="@string/user" />
+        android:icon="@drawable/heart"
+        android:title="@string/liked" />
     <item
         android:id="@+id/discover"
         android:icon="@drawable/discover"

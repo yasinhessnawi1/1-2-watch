@@ -9,6 +9,7 @@ import com.example.a1_2_watch.models.Anime
 import com.example.a1_2_watch.models.Movie
 import com.example.a1_2_watch.models.Show
 import com.example.a1_2_watch.utils.Constants
+import com.example.a1_2_watch.utils.Constants.PLACEHOLDER_URL
 
 /**
  * DiscoverAdapter class for displaying a list of media items as a result of a search query in the RecyclerView.
@@ -90,7 +91,6 @@ class DiscoverAdapter(
             val title: String?
             // The poster path of the media item.
             val posterPath: String?
-
             // Check the type of the media item
             when (item) {
                 is Movie -> {
@@ -115,13 +115,31 @@ class DiscoverAdapter(
                 }
             }
 
-            // Set the title in the UI.
             binding.titleTextView.text = title
 
-            // load the poster image using Glide library.
-            Glide.with(binding.root.context)
-                .load(posterPath ?: "")
-                .into(binding.posterImageView)
+            if (!posterPath.isNullOrEmpty()) {
+                Glide.with(binding.root.context)
+                    .load(posterPath)
+                    .into(binding.posterImageView)
+            } else {
+                // Set a placeholder or hide the ImageView
+                Glide.with(binding.root.context)
+                    .load(PLACEHOLDER_URL)
+                    .into(binding.posterImageView)
+            }
+
+            // Load the poster image using Glide library.
+            if (!posterPath.isNullOrEmpty()) {
+                Glide.with(binding.root.context)
+                    .load(posterPath)
+                    .into(binding.posterImageView)
+            } else {
+                // Set a placeholder image or hide the ImageView
+                Glide.with(binding.root.context)
+                    .load(PLACEHOLDER_URL)
+                    .into(binding.posterImageView)
+            }
+
             // Set the click listener on the item view to handle item click events.
             itemView.setOnClickListener { onItemClick(item) }
         }

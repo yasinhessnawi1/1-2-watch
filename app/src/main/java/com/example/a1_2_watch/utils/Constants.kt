@@ -15,4 +15,5 @@ object Constants {
     const val YOUTUBE_URL = "https://www.youtube.com/watch?v="
     // The Base URL for Kitsu API requests.
     const val KITSU_URL = "https://kitsu.io/api/edge/"
+    const val PLACEHOLDER_URL = "https://placehold.co/600x400/000000/FFFFFF.png?text=No+Image&font=roboto"
 }
