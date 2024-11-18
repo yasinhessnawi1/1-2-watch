@@ -26,7 +26,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.UserPageActivity"
+            android:name=".ui.UserLikedActivity"
             android:exported="true"
             android:label="@string/user_page"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />

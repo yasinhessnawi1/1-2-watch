@@ -152,7 +152,7 @@ data class AnimeData(
  */
 data class Attributes(
     val synopsis: String?,
-    val canonicalTitle: String,
+    val canonicalTitle: String?,
     val averageRating: String,
     val startDate: String?,
     val endDate: String?,

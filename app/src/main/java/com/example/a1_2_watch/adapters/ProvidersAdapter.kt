@@ -90,8 +90,8 @@ class ProvidersAdapter(private var providers: List<Provider>) :
          */
         fun bind(provider: Provider) {
             // Sets the provider name.
-            binding.providerNameTextView.text = provider.provider_name
-            if (provider.logo_path == null) {
+            binding.providerNameTextView.text = provider.providerName
+            if (provider.logoPath == null) {
                 // Load provider logo using Glide library.
                 Glide.with(binding.providerLogoImageView.context)
                     .load(R.drawable.provider_place_holder)
@@ -99,7 +99,7 @@ class ProvidersAdapter(private var providers: List<Provider>) :
             } else {
                 // Load provider logo using Glide library.
                 Glide.with(binding.providerLogoImageView.context)
-                    .load("https://image.tmdb.org/t/p/original/${provider.logo_path}")
+                    .load("https://image.tmdb.org/t/p/original/${provider.logoPath}")
                     .into(binding.providerLogoImageView)
             }
         }

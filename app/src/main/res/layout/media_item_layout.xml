@@ -103,7 +103,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:textAlignment="center"
-            android:src="@drawable/arraw_down" />
+            android:src="@drawable/arrow_down" />
     </LinearLayout>
 
     <LinearLayout

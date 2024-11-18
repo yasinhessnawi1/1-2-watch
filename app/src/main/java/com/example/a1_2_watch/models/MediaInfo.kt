@@ -1,5 +1,7 @@
 package com.example.a1_2_watch.models
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Data class representing a movie.
  *
@@ -11,13 +13,14 @@ package com.example.a1_2_watch.models
  * @property isLiked Indicates if the movie is marked as liked by the user or not.
  */
 data class Movie(
-    val id: Int,
-    val title: String?,
-    val overview: String,
-    val poster_path: String?,
-    val vote_average: Double,
-    val release_date: String?,
-    var isLiked: Boolean = false
+    @SerializedName("id")  val id: Int,
+    @SerializedName("title") val title: String?,
+    @SerializedName("overview") val overview: String,
+    @SerializedName("poster_path") val poster_path: String?,
+    @SerializedName("vote_average") val vote_average: Double,
+    @SerializedName("release_date") val release_date: String?,
+    @SerializedName("isLiked") var isLiked: Boolean = false,
+    @SerializedName("media_type")  var mediaType: MediaType = MediaType.MOVIES
 )
 
 /**
@@ -31,15 +34,17 @@ data class Movie(
  * @property isLiked Indicates if the TV show is marked as liked by the user or not.
  */
 data class Show(
-    val id: Int,
-    val name: String?,
-    val overview: String,
-    val poster_path: String?,
-    val vote_average: Double,
-    val first_air_date: String?,
-    var isLiked: Boolean = false
-
+    @SerializedName("id")  val id: Int,
+    @SerializedName("name") val name: String?,
+    @SerializedName("overview") val overview: String,
+    @SerializedName("poster_path") val poster_path: String?,
+    @SerializedName("vote_average") val vote_average: Double,
+    @SerializedName("first_air_date") val first_air_date: String?,
+    @SerializedName("isLiked") var isLiked: Boolean = false,
+    @SerializedName("media_type")  var mediaType: MediaType = MediaType.TV_SHOWS
 )
+
+
 
 /**
  * Data class representing an anime
@@ -49,8 +54,11 @@ data class Show(
  * @property isLiked Indicates if the anime is marked as liked by the user or not.
  */
 data class Anime(
-    val id: Int,
-    val attributes: Attributes,
-    var isLiked: Boolean = false
+    @SerializedName("id")  val id: Int,
+    @SerializedName("attributes") val attributes: Attributes,
+    @SerializedName("isLiked") var isLiked: Boolean = false,
+    @SerializedName("media_type")  var mediaType: MediaType = MediaType.ANIME
 )
+
+
 

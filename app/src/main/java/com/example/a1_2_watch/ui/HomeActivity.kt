@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.*
@@ -16,6 +17,9 @@ import com.example.a1_2_watch.utils.NavigationUtils
 import com.example.a1_2_watch.workers.FetchMediaWorker
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -33,17 +37,13 @@ class HomeActivity : AppCompatActivity() {
     // Media Adapter for managing and displaying a list of anime items in the RecyclerView.
     private lateinit var animeAdapter: MediaAdapter<Anime>
     // LikeButtonUtils for managing like functionality.
-    private val likeButtonUtils = LikeButtonUtils(this)
+    private lateinit var likeButtonUtils: LikeButtonUtils
     // Variable used to track the current page for pagination data loading.
     private var currentPage = 1
     // Boolean indicating whether data is being loaded or not.
     private val isLoading = AtomicBoolean(false)
     // Limit for anime items per page
-    private val animeLimit = 20
-    // SharedPreferences instance for storing liked items, and initialized lazily for efficiency.
-    private val sharedPreferences by lazy {
-        getSharedPreferences("liked_items", Context.MODE_PRIVATE)
-    }
+    private val animeLimit = 10
     // Gson instance for JSON parsing
     private val gson = Gson()
 
@@ -61,6 +61,8 @@ class HomeActivity : AppCompatActivity() {
         setContentView(binding.root)
         // Sets up the RecyclerViews for displaying lists of movies, shows, and anime.
         setupRecyclerViews()
+
+        likeButtonUtils = LikeButtonUtils(this)
         // Fetch data for all categories on activity start
         fetchAllMedia()
         // Sets up the bottom navigation bar for navigation between activities.
@@ -95,10 +97,6 @@ class HomeActivity : AppCompatActivity() {
                 // Toggles the liked status of the selected movie.
                 toggleLike(movie)
             },
-            onExpandClick = { movie ->
-                // Handle expand button click for movie item.
-                expandItem(movie)
-            }
         )
         // Sets the layout manager for displaying items horizontally in the movies RecyclerView.
         binding.moviesRecyclerView.layoutManager =
@@ -118,10 +116,6 @@ class HomeActivity : AppCompatActivity() {
             onSaveClick = { show ->
                 // Toggles the liked status of the selected TV show.
                 toggleLike(show)
-            },
-            onExpandClick = { show ->
-                // Handle expand button click for TV show item.
-                expandItem(show)
             }
         )
         // Sets the layout manager for displaying items horizontally in the TV shows RecyclerView.
@@ -142,10 +136,6 @@ class HomeActivity : AppCompatActivity() {
             onSaveClick = { anime ->
                 // Toggles the liked status of the selected anime.
                 toggleLike(anime)
-            },
-            onExpandClick = { anime ->
-                // Handle expand button click for anime item.
-                expandItem(anime)
             }
         )
         // Sets the layout manager for displaying items horizontally in the anime RecyclerView.
@@ -259,16 +249,19 @@ class HomeActivity : AppCompatActivity() {
         if (resultJson == null) return
         val type = object : TypeToken<List<Movie>>() {}.type
         val fetchedMovies: List<Movie> = gson.fromJson(resultJson, type)
-        // Gets the liked movie titles from SharedPreferences.
-        val likedMoviesTitles = getLikedTitles("liked_movies")
-        // Updates each movie's liked status.
-        val updatedMovies = fetchedMovies.map { movie ->
-            movie.isLiked = likedMoviesTitles.contains(movie.title)
-            movie
+        lifecycleScope.launch {
+            val likedMovies = likeButtonUtils.getLikedMovies()
+            // Update each movie's liked status
+            val updatedMovies = fetchedMovies.map { movie ->
+                movie.isLiked = likedMovies.any { likedMovie -> likedMovie.id == movie.id }
+                movie
+            }
+            withContext(Dispatchers.Main) {
+                moviesAdapter.addMediaItems(updatedMovies)
+            }
         }
-        // Adds the updated movies to the adapter.
-        moviesAdapter.addMediaItems(updatedMovies)
     }
+
 
     /**
      * This function fetches popular TV shows using WorkManager and updates the adapter with liked
@@ -309,16 +302,18 @@ class HomeActivity : AppCompatActivity() {
         if (resultJson == null) return
         val type = object : TypeToken<List<Show>>() {}.type
         val fetchedShows: List<Show> = gson.fromJson(resultJson, type)
-        // Gets the liked TV show names from SharedPreferences.
-        val likedShowsNames = getLikedTitles("liked_shows")
-        // Updates each show's liked status.
-        val updatedShows = fetchedShows.map { show ->
-            show.isLiked = likedShowsNames.contains(show.name)
-            show
+        lifecycleScope.launch {
+            val likedShows = likeButtonUtils.getLikedShows()
+            val updatedShows = fetchedShows.map { show ->
+                show.isLiked = likedShows.any { likedShow -> likedShow.id == show.id }
+                show
+            }
+            withContext(Dispatchers.Main) {
+                tvShowsAdapter.addMediaItems(updatedShows)
+            }
         }
-        // Adds the updated TV shows to the adapter.
-        tvShowsAdapter.addMediaItems(updatedShows)
     }
+
 
     /**
      * This function fetches popular anime using WorkManager and updates the adapter with liked
@@ -360,51 +355,20 @@ class HomeActivity : AppCompatActivity() {
         if (resultJson == null) return
         val type = object : TypeToken<List<Anime>>() {}.type
         val fetchedAnime: List<Anime> = gson.fromJson(resultJson, type)
-        // Gets the liked anime titles from SharedPreferences.
-        val likedAnimeTitles = getLikedAnimeTitles()
-        // Updates each anime's liked status.
-        val updatedAnime = fetchedAnime.map { anime ->
-            anime.isLiked = likedAnimeTitles.contains(anime.attributes.canonicalTitle)
-            anime
-        }
-        // Adds the updated anime to the adapter.
-        animeAdapter.addMediaItems(updatedAnime)
-    }
-
-    /**
-     * This function retrieves liked titles from SharedPreferences for movies and shows.
-     *
-     * @param key The key for the SharedPreferences entry.
-     * @return A list of liked titles.
-     */
-    private fun getLikedTitles(key: String): List<String> {
-        val likedItemsJson = sharedPreferences.getString(key, "[]")
-        val type = when (key) {
-            "liked_movies" -> object : TypeToken<List<Movie>>() {}.type
-            "liked_shows" -> object : TypeToken<List<Show>>() {}.type
-            else -> return emptyList()
-        }
-        val likedItems: List<Any> = gson.fromJson(likedItemsJson, type)
-        return likedItems.mapNotNull {
-            when (it) {
-                is Movie -> it.title
-                is Show -> it.name
-                else -> null
+        lifecycleScope.launch {
+            val likedAnime = likeButtonUtils.getLikedAnime()
+            val updatedAnime = fetchedAnime.map { anime ->
+                anime.isLiked = likedAnime.any { likedItem -> likedItem.id == anime.id }
+                anime
+            }
+            withContext(Dispatchers.Main) {
+                animeAdapter.addMediaItems(updatedAnime)
             }
         }
     }
 
-    /**
-     * This function retrieves liked anime titles from SharedPreferences.
-     *
-     * @return A list of liked anime titles.
-     */
-    private fun getLikedAnimeTitles(): List<String> {
-        val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
-        val likedAnime: List<Anime> =
-            gson.fromJson(likedAnimeJson, object : TypeToken<List<Anime>>() {}.type)
-        return likedAnime.map { it.attributes.canonicalTitle }
-    }
+
+
 
     /**
      * This function marks the loading process as complete by setting the isLoading flag to false.
@@ -446,47 +410,43 @@ class HomeActivity : AppCompatActivity() {
      * @param item The media item to toggle liked status for.
      */
     private fun toggleLike(item: Any) {
-        // Toggles the like status of the item in the shared preferences.
-        likeButtonUtils.toggleLikeToItem(item)
-        // Updates the UI after toggling.
-        when (item) {
-            is Movie -> moviesAdapter.updateLikeStatus(item)
-            is Show -> tvShowsAdapter.updateLikeStatus(item)
-            is Anime -> animeAdapter.updateLikeStatus(item)
+        lifecycleScope.launch {
+            // Toggle like status of the item
+            likeButtonUtils.toggleLikeToItem(item)
+
+            // Update the isLiked status of the item
+            when (item) {
+                is Movie -> item.isLiked = !item.isLiked
+                is Show -> item.isLiked = !item.isLiked
+                is Anime -> item.isLiked = !item.isLiked
+            }
+
+            // Update the UI after toggling on the main thread
+            withContext(Dispatchers.Main) {
+                when (item) {
+                    is Movie -> moviesAdapter.updateLikeStatus(item)
+                    is Show -> tvShowsAdapter.updateLikeStatus(item)
+                    is Anime -> animeAdapter.updateLikeStatus(item)
+                }
+            }
         }
     }
+
+
 
     /**
      * This function refreshes the liked status of media items in each adapter by checking which items
      * are marked as liked in the SharedPreferences.
      */
     private fun refreshLikedStatus() {
-        // Gets liked movies titles from SharedPreferences.
-        val likedMoviesTitles = getLikedTitles("liked_movies")
-        // Updates the movies adapter with the list of liked movie titles.
-        moviesAdapter.refreshLikedStatus(likedMoviesTitles)
-
-        // Gets liked TV show names from SharedPreferences.
-        val likedShowsNames = getLikedTitles("liked_shows")
-        // Updates the TV shows adapter with the list of liked TV show names.
-        tvShowsAdapter.refreshLikedStatus(likedShowsNames)
-
-        // Gets liked anime titles from SharedPreferences.
-        val likedAnimeTitles = getLikedAnimeTitles()
-        // Updates the anime adapter with the list of liked anime titles.
-        animeAdapter.refreshLikedStatus(likedAnimeTitles)
-    }
-
-    /**
-     * This function handles the expand button click for a media item and toggles the expandable layout.
-     *
-     * @param item The media item whose expandable layout is to be toggled.
-     */
-    private fun expandItem(item: Any) {
-        when (item) {
-            is Movie -> moviesAdapter.toggleItemExpansion(item)
-            is Show -> tvShowsAdapter.toggleItemExpansion(item)
-            is Anime -> animeAdapter.toggleItemExpansion(item)
+        lifecycleScope.launch {
+            val likedMovies = likeButtonUtils.getLikedMovies()
+            withContext(Dispatchers.Main) {
+                moviesAdapter.refreshLikedStatus(likedMovies.map { it.id })
+            }
         }
     }
+
+
+
 }
