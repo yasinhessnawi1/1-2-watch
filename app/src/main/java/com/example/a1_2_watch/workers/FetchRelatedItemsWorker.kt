@@ -71,10 +71,10 @@ class FetchRelatedItemsWorker(
     }
 
     private suspend fun fetchRelatedAnime(likedAnime: List<Anime>): List<Anime> {
-        val animeTypes = likedAnime.map { it.attributes.subtype }.distinct()
+        val animeIds = likedAnime.map { it.id }
         val relatedAnime = mutableListOf<Anime>()
-        for (type in animeTypes) {
-            val related = mediaRepository.fetchAnimeByType(type)
+        for (id in animeIds) {
+            val related = mediaRepository.getRelatedAnime(id.toString())
             relatedAnime.addAll(related.take(10))
         }
         return relatedAnime

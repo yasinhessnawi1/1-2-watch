@@ -132,18 +132,46 @@ class MediaRepository {
      * @param type The subtype of the anime.
      * @return A list of anime matching the subtype or an empty list if the request fails.
      */
-    suspend fun fetchAnimeByType(type: String): List<Anime> {
+    suspend fun getAnimeWithRelationships(animeId: String): AnimeResponseIncluded? {
         return try {
-            val response = kitsuApiService.searchAnimeByType(type)
+            val response = kitsuApiService.getAnime(animeId, "mediaRelationships.destination")
             if (response.isSuccessful) {
-                response.body()?.data ?: emptyList()
+                response.body()
             } else {
-                Log.e("MediaRepository", "Failed to fetch anime by type: ${response.message()}")
-                emptyList()
+                null
             }
         } catch (e: Exception) {
-            Log.e("MediaRepository", "Exception in fetchAnimeByType: ${e.message}")
+            Log.e("AnimeRepository", "Error fetching anime with relationships", e)
+            null
+        }
+    }
+    fun extractRelatedAnimeIds(animeResponse: AnimeResponseIncluded): List<String> {
+        return animeResponse.included
+            ?.filter { it.type == "mediaRelationships" }
+            ?.mapNotNull { it.relationships?.destination?.data }
+            ?.filter { it.type == "anime" }
+            ?.map { it.id }
+            ?: emptyList()
+    }
+    suspend fun getRelatedAnime(animeId: String): List<Anime> {
+        val animeWithRelationships = getAnimeWithRelationships(animeId) ?: return emptyList()
+        val relatedAnimeIds = extractRelatedAnimeIds(animeWithRelationships)
+
+        return if (relatedAnimeIds.isNotEmpty()) {
+            try {
+                val response = kitsuApiService.getAnimeList(relatedAnimeIds.joinToString(","))
+                if (response.isSuccessful) {
+                    response.body()?.data ?: emptyList()
+                } else {
+                    emptyList()
+                }
+            } catch (e: Exception) {
+                Log.e("AnimeRepository", "Error fetching related anime", e)
+                emptyList()
+            }
+        } else {
             emptyList()
         }
     }
+
 }

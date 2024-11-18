@@ -1,15 +1,14 @@
 package com.example.a1_2_watch.models
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Detailed information about a movie.
  *
- * @property adult Indicates if the movie is for adults.
  * @property backdrop_path Path to the backdrop image.
- * @property belongs_to_collection Collection information, if any.
  * @property budget Budget of the movie in USD.
  * @property genres List of genres for the movie.
  * @property id Unique ID for the movie.
- * @property imdb_id IMDb ID of the movie.
  * @property original_language Original language code.
  * @property original_title Original title of the movie.
  * @property overview Short description or plot summary.
@@ -23,30 +22,25 @@ package com.example.a1_2_watch.models
  * @property title Title of the movie.
  * @property video Indicates if movie has a video associated with it.
  * @property vote_average Average vote score.
- * @property vote_count Number of votes received.
  */
 data class MovieDetails(
-    val adult: Boolean,
-    val backdrop_path: String?,
-    val poster_path: String?,
-    val release_date: String,
-    val belongs_to_collection: Any?,
-    val budget: Int,
-    val genres: List<Genre>,
-    val id: Int,
-    val imdb_id: String?,
-    val original_language: String,
-    val original_title: String,
-    val overview: String?,
-    val popularity: Double,
-    val revenue: Int,
-    val runtime: Int,
-    val status: String,
-    val tagline: String?,
-    val title: String,
-    val video: Boolean,
-    val vote_average: Double,
-    val vote_count: Int
+    @SerializedName("backdrop_path") val backdrop_path: String?,
+    @SerializedName("budget") val budget: Int,
+    @SerializedName("genres") val genres: List<Genre>,
+    @SerializedName("id") val id: Int,
+    @SerializedName("original_language") val original_language: String,
+    @SerializedName("original_title") val original_title: String,
+    @SerializedName("overview") val overview: String?,
+    @SerializedName("popularity") val popularity: Double,
+    @SerializedName("poster_path") val poster_path: String?,
+    @SerializedName("release_date") val release_date: String,
+    @SerializedName("revenue") val revenue: Int,
+    @SerializedName("runtime") val runtime: Int,
+    @SerializedName("status") val status: String,
+    @SerializedName("tagline") val tagline: String?,
+    @SerializedName("title") val title: String,
+    @SerializedName("video") val video: Boolean,
+    @SerializedName("vote_average") val vote_average: Double,
 )
 
 /**
@@ -76,29 +70,28 @@ data class MovieDetails(
  * @property vote_count Number of votes received.
  */
 data class ShowDetails(
-    val adult: Boolean,
-    val backdrop_path: String?,
-    val created_by: List<Creator>,
-    val episode_run_time: List<Int>,
-    val first_air_date: String,
-    val genres: List<Genre>,
-    val id: Int,
-    val in_production: Boolean,
-    val last_air_date: String?,
-    val last_episode_to_air: LastEpisodeToAir?,
-    val name: String,
-    val next_episode_to_air: LastEpisodeToAir?,
-    val number_of_episodes: Int,
-    val number_of_seasons: Int,
-    val overview: String?,
-    val popularity: Double,
-    val poster_path: String?,
-    val seasons: List<Season>,
-    val status: String,
-    val tagline: String?,
-    val vote_average: Double,
-    val vote_count: Int
+    @SerializedName("backdrop_path") val backdrop_path: String?,
+    @SerializedName("created_by") val created_by: List<Creator>,
+    @SerializedName("episode_run_time") val episode_run_time: List<Int>,
+    @SerializedName("first_air_date") val first_air_date: String,
+    @SerializedName("genres") val genres: List<Genre>,
+    @SerializedName("id") val id: Int,
+    @SerializedName("in_production") val in_production: Boolean,
+    @SerializedName("last_air_date") val last_air_date: String?,
+    @SerializedName("last_episode_to_air") val last_episode_to_air: LastEpisodeToAir?,
+    @SerializedName("name") val name: String,
+    @SerializedName("next_episode_to_air") val next_episode_to_air: LastEpisodeToAir?,
+    @SerializedName("number_of_episodes") val number_of_episodes: Int,
+    @SerializedName("number_of_seasons") val number_of_seasons: Int,
+    @SerializedName("overview") val overview: String?,
+    @SerializedName("popularity") val popularity: Double,
+    @SerializedName("poster_path") val poster_path: String?,
+    @SerializedName("seasons") val seasons: List<Season>,
+    @SerializedName("status") val status: String,
+    @SerializedName("tagline") val tagline: String?,
+    @SerializedName("vote_average") val vote_average: Double,
 )
+
 
 /**
  * Detailed information about an anime.
@@ -106,7 +99,7 @@ data class ShowDetails(
  * @property data Main anime data.
  */
 data class AnimeDetails(
-    val data: AnimeData?
+    @SerializedName("data") val data: AnimeData
 )
 
 /**
@@ -118,9 +111,10 @@ data class AnimeDetails(
  * @property attributes Attributes of the anime (e.g., titles, poster).
  */
 data class AnimeData(
-    val id: String?,
-    val links: Links?,
-    val attributes: Attributes?
+   @SerializedName("id") val id: String,
+    @SerializedName("type") val type: String,
+    @SerializedName("links") val links: Links,
+    @SerializedName("attributes") val attributes: Attributes
 )
 
 /**
@@ -171,11 +165,29 @@ data class Attributes(
  * @property enJp Japanese title (in English).
  * @property jaJp Japanese title.
  */
-data class Titles(
-    val en: String?,
-    val enJp: String?,
-    val jaJp: String?
+data class AnimeResponseIncluded(
+    val data: Anime,
+    val included: List<IncludedData>?
 )
+data class IncludedData(
+    val id: String,
+    val type: String,
+    val relationships: Relationships?
+)
+
+data class Relationships(
+    val destination: Destination?
+)
+
+data class Destination(
+    val data: DestinationData
+)
+
+data class DestinationData(
+    val id: String,
+    val type: String
+)
+
 
 /**
  * Poster image details in various sizes.
@@ -192,59 +204,7 @@ data class PosterImage(
     val original: String?
 )
 
-/**
- * Cover image details in various sizes.
- *
- * @property tiny Tiny-sized cover image URL.
- * @property large Large-sized cover image URL.
- * @property small Small-sized cover image URL.
- * @property original Original cover image URL.
- */
-data class CoverImage(
-    val tiny: String?,
-    val large: String?,
-    val small: String?,
-    val original: String?
-)
 
-/**
- * Relationships with other anime or media.
- *
- * @property genres Link to related genres.
- * @property categories Link to related categories.
- * @property castings Link to related castings.
- * @property installments Link to related installments.
- * @property mappings Link to related mappings.
- * @property reviews Link to related reviews.
- * @property mediaRelationships Link to related media.
- * @property characters Link to related characters.
- * @property staff Link to related staff.
- * @property productions Link to related productions.
- * @property quotes Link to related quotes.
- * @property episodes Link to related episodes.
- * @property streamingLinks Link to related streaming sources.
- * @property animeProductions Link to anime production information.
- * @property animeCharacters Link to anime character information.
- * @property animeStaff Link to anime staff information.
- */
-data class Relationships(
-    val genres: RelationshipLinks,
-    val categories: RelationshipLinks,
-    val castings: RelationshipLinks,
-    val installments: RelationshipLinks,
-    val mappings: RelationshipLinks,
-    val reviews: RelationshipLinks,
-    val mediaRelationships: RelationshipLinks,
-    val characters: RelationshipLinks,
-    val staff: RelationshipLinks,
-    val productions: RelationshipLinks,
-    val quotes: RelationshipLinks,
-    val episodes: RelationshipLinks,
-    val streamingLinks: RelationshipLinks,
-    val animeProductions: RelationshipLinks,
-    val animeCharacters: RelationshipLinks,
-    val animeStaff: RelationshipLinks
-)
 
 /**
  * Links to a related resource.

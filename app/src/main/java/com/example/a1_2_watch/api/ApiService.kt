@@ -87,6 +87,9 @@ interface ApiService {
         @Path("anime_id") animeId: String
     ): Response<AnimeDetails>
 
+
+
+
     /**
      * Fetches available watch providers for a specific movie by the given ID.
      *
@@ -204,8 +207,14 @@ interface ApiService {
      * @param subtype The subtype of the anime to filter results by.
      * @return A Response object with the response containing a list of anime matching the subtype.
      */
+    @GET("anime/{id}")
+    suspend fun getAnime(
+        @Path("id") id: String,
+        @Query("include") include: String
+    ): Response<AnimeResponseIncluded>
+
     @GET("anime")
-    suspend fun searchAnimeByType(
-        @Query("filter[subtype]") subtype: String
+    suspend fun getAnimeList(
+        @Query("filter[id]") ids: String
     ): Response<AnimeResponse>
 }
