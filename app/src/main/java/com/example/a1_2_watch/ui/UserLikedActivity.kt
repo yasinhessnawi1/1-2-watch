@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.a1_2_watch.adapters.MediaAdapter
-import com.example.a1_2_watch.databinding.UserPageLayoutBinding
+import com.example.a1_2_watch.databinding.UserLikedLayoutBinding
 import com.example.a1_2_watch.models.Anime
 import com.example.a1_2_watch.models.Movie
 import com.example.a1_2_watch.models.Show
@@ -25,9 +25,9 @@ import com.example.a1_2_watch.utils.LikeButtonUtils
  * UserPageActivity displays a list of media items that the user has marked as liked.
  * This activity provides functionality to view and manage liked media items.
  */
-class UserPageActivity : AppCompatActivity() {
+class UserLikedActivity : AppCompatActivity() {
     // Binds the user page layout for accessing UI components.
-    private lateinit var binding: UserPageLayoutBinding
+    private lateinit var binding: UserLikedLayoutBinding
     // Creates adapter for displaying a list of liked movies.
     private lateinit var moviesAdapter: MediaAdapter<Movie>
     // Creates adapter for displaying a list of liked TV Shows.
@@ -39,7 +39,8 @@ class UserPageActivity : AppCompatActivity() {
         getSharedPreferences("liked_items", Context.MODE_PRIVATE)
     }
     // LikeButtonUtils for managing like functionality.
-    private val likeButtonUtils = LikeButtonUtils(this)
+    private lateinit var likeButtonUtils: LikeButtonUtils
+
 
     /**
      * This function initializes the activity, sets up view bindings, RecyclerViews, adapters, loads
@@ -50,9 +51,11 @@ class UserPageActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Create binding with the User layout view
-        binding = UserPageLayoutBinding.inflate(layoutInflater)
+        binding = UserLikedLayoutBinding.inflate(layoutInflater)
         // Sets the content view to the User layout.
         setContentView(binding.root)
+        // Initialize LikeButtonUtils for managing liked items.
+        likeButtonUtils = LikeButtonUtils(this)
         // Set up the Go Back button and finish activity when back button is pressed
         binding.goBackButton.setOnClickListener {
             finish()
@@ -89,7 +92,10 @@ class UserPageActivity : AppCompatActivity() {
                 NavigationUtils.navigateToDetails(this, movie.id, MediaType.MOVIES.name)
             },
             onSaveClick = { toggleLikeAndRefresh(it) },
-            onExpandClick = { expandItem(it) }
+            fetchDetailsFromAPI = true,
+                    lifecycleOwner = this
+
+
         )
         // Sets up adapter for TV Shows with click listeners
         showsAdapter = MediaAdapter(
@@ -98,7 +104,9 @@ class UserPageActivity : AppCompatActivity() {
                 NavigationUtils.navigateToDetails(this, show.id, MediaType.TV_SHOWS.name)
             },
             onSaveClick = { toggleLikeAndRefresh(it) },
-            onExpandClick = { expandItem(it) }
+            fetchDetailsFromAPI = true,
+                    lifecycleOwner = this
+
         )
         // Sets up adapter for anime with click listeners
         animeAdapter = MediaAdapter(
@@ -107,7 +115,9 @@ class UserPageActivity : AppCompatActivity() {
                 NavigationUtils.navigateToDetails(this, anime.id, MediaType.ANIME.name)
             },
             onSaveClick = { toggleLikeAndRefresh(it) },
-            onExpandClick = { expandItem(it) }
+            fetchDetailsFromAPI = true,
+            lifecycleOwner = this
+
         )
         // Sets the layout manager for displaying items horizontally in the liked movies RecyclerView.
         binding.likedMoviesRecyclerView.apply {
@@ -132,92 +142,55 @@ class UserPageActivity : AppCompatActivity() {
      * view if no items are liked.
      */
     private fun loadLikedItems() {
-        // Create Gson instance for parsing JSON data.
-        val gson = Gson()
-        // Launches a coroutine on the lifecycle scope
         lifecycleScope.launch {
-            // Gets the liked movies from the SharedPreferences on the IO thread.
             val likedMovies = withContext(Dispatchers.IO) {
-                val likedMoviesJson = sharedPreferences.getString("liked_movies", "[]")
-                val likedMovies: List<Movie> =
-                    gson.fromJson(likedMoviesJson, object : TypeToken<List<Movie>>() {}.type)
-                // Set isLiked to true for all liked movies
-                likedMovies.forEach { it.isLiked = true }
-                // Return the list of liked movies.
-                likedMovies
+                likeButtonUtils.getLikedMovies()
             }
-            // Update movies RecyclerView or show empty movie text view
+
             withContext(Dispatchers.Main) {
                 if (likedMovies.isEmpty()) {
-                    // Show message if no liked movies
                     binding.emptyMoviesTextView.visibility = View.VISIBLE
-                    // Hide movies RecyclerView
                     binding.likedMoviesRecyclerView.visibility = View.GONE
                 } else {
-                    // Hide the message
                     binding.emptyMoviesTextView.visibility = View.GONE
-                    // Show movies RecyclerView
                     binding.likedMoviesRecyclerView.visibility = View.VISIBLE
-                    // Update the adapter with liked movies.
                     moviesAdapter.setMediaList(likedMovies)
                 }
             }
 
-            // Gets the liked TV Shows from the SharedPreferences on the IO thread.
             val likedShows = withContext(Dispatchers.IO) {
-                val likedShowsJson = sharedPreferences.getString("liked_shows", "[]")
-                val likedShows: List<Show> =
-                    gson.fromJson(likedShowsJson, object : TypeToken<List<Show>>() {}.type)
-                // Set isLiked to true for all liked shows
-                likedShows.forEach { it.isLiked = true }
-                // Return the list of liked TV shows.
-                likedShows
+                likeButtonUtils.getLikedShows()
             }
-            // Update TV Shows RecyclerView or show empty TV Show text view
+
             withContext(Dispatchers.Main) {
                 if (likedShows.isEmpty()) {
-                    // Show message if no liked TV Shows.
                     binding.emptyTvShowsTextView.visibility = View.VISIBLE
-                    // Hide TV Shows RecyclerView
                     binding.likedTvShowsRecyclerView.visibility = View.GONE
                 } else {
-                    // Hide the message
                     binding.emptyTvShowsTextView.visibility = View.GONE
-                    // Show TV Shows RecyclerView
                     binding.likedTvShowsRecyclerView.visibility = View.VISIBLE
-                    // Update the adapter with liked TV Shows.
                     showsAdapter.setMediaList(likedShows)
                 }
             }
 
-            // Gets the liked anime from the SharedPreferences on the IO thread.
             val likedAnime = withContext(Dispatchers.IO) {
-                val likedAnimeJson = sharedPreferences.getString("liked_anime", "[]")
-                val likedAnime: List<Anime> =
-                    gson.fromJson(likedAnimeJson, object : TypeToken<List<Anime>>() {}.type)
-                // Set isLiked to true for all liked anime
-                likedAnime.forEach { it.isLiked = true }
-                // Return the list of liked anime.
-                likedAnime
+                likeButtonUtils.getLikedAnime()
             }
-            // Update anime RecyclerView or show empty anime text view
+
             withContext(Dispatchers.Main) {
                 if (likedAnime.isEmpty()) {
-                    // Show message if no liked anime.
                     binding.emptyAnimeTextView.visibility = View.VISIBLE
-                    // Hide anime RecyclerView
                     binding.likedAnimeRecyclerView.visibility = View.GONE
                 } else {
-                    // Hide the message
                     binding.emptyAnimeTextView.visibility = View.GONE
-                    // Show anime RecyclerView
                     binding.likedAnimeRecyclerView.visibility = View.VISIBLE
-                    // Update the adapter with liked anime.
                     animeAdapter.setMediaList(likedAnime)
                 }
             }
         }
     }
+
+
 
     /**
      * This function toggles the liked status of a given item. It also refreshes the liked item list
@@ -226,24 +199,41 @@ class UserPageActivity : AppCompatActivity() {
      * @param item The media item whose liked status is being toggled.
      */
     private fun toggleLikeAndRefresh(item: Any) {
-        // Use LikeButtonUtils to toggle like status
-        likeButtonUtils.toggleLikeToItem(item)
-        // Reload liked items to reflect changes.
-        loadLikedItems()
-    }
+        lifecycleScope.launch {
+            // Toggle like status
+            likeButtonUtils.toggleLikeToItem(item)
 
-    /**
-     * This function handles the expand button click for a media item and toggles the expandable layout.
-     *
-     * @param item The media item whose expandable layout is to be toggled.
-     */
-    private fun expandItem(item: Any) {
-        when (item) {
-            is Movie -> moviesAdapter.toggleItemExpansion(item)
-            is Show -> showsAdapter.toggleItemExpansion(item)
-            is Anime -> animeAdapter.toggleItemExpansion(item)
+            // Remove item from adapter
+            when (item) {
+                is Movie -> {
+                    moviesAdapter.removeMediaItem(item)
+                    if (moviesAdapter.itemCount == 0) {
+                        binding.emptyMoviesTextView.visibility = View.VISIBLE
+                        binding.likedMoviesRecyclerView.visibility = View.GONE
+                    }
+                }
+                is Show -> {
+                    showsAdapter.removeMediaItem(item)
+                    if (showsAdapter.itemCount == 0) {
+                        binding.emptyTvShowsTextView.visibility = View.VISIBLE
+                        binding.likedTvShowsRecyclerView.visibility = View.GONE
+                    }
+                }
+                is Anime -> {
+                    animeAdapter.removeMediaItem(item)
+                    if (animeAdapter.itemCount == 0) {
+                        binding.emptyAnimeTextView.visibility = View.VISIBLE
+                        binding.likedAnimeRecyclerView.visibility = View.GONE
+                    }
+                }
+            }
         }
     }
+
+
+
+
+
 
     /**
      * This function sets up the bottom navigation bar, configures each tab with its navigation behavior.
