@@ -393,10 +393,14 @@ class MediaAdapter<T>(
                         val movieDetails = gson.fromJson(resultJson, MovieDetails::class.java)
                         if (movieDetails != null) {
                             binding.releaseDateTextView.text = context.getString(
-                                R.string.release_date, movieDetails.release_date
+                                R.string.release_date, movieDetails.release_date ?: context.getString(
+                                    R.string.release_date_n_a
+                                )
                             )
                             binding.overviewTextView.text =
-                                context.getString(R.string.description, movieDetails.overview)
+                                context.getString(R.string.description, movieDetails.overview ?: context.getString(
+                                    R.string.no_description
+                                ))
                             binding.endDateTextView.visibility = View.GONE
                             binding.nextReleaseLayout.visibility = View.GONE
                         } else {
@@ -408,23 +412,31 @@ class MediaAdapter<T>(
                             gson.fromJson(resultJson, ShowDetails::class.java)
                         if (showDetails != null) {
                             binding.releaseDateTextView.text = context.getString(
-                                R.string.first_air_date, showDetails.first_air_date
+                                R.string.first_air_date, showDetails.first_air_date ?: context.getString(
+                                    R.string.first_air_date_n_a
+                                )
                             )
                             binding.overviewTextView.text = context.getString(
-                                R.string.description, showDetails.overview
+                                R.string.description, showDetails.overview ?: context.getString(
+                                    R.string.no_description
+                                )
                             )
 
-                            if (showDetails.status == "Ended" || showDetails.next_episode_to_air == null) {
+                            if (showDetails.status == "Ended" ) {
                                 binding.endDateTextView.visibility = View.GONE
                                 binding.nextReleaseLayout.visibility = View.GONE
                             } else {
                                 binding.nextReleaseTextView.text = context.getString(
                                     R.string.next_episode_to_air,
-                                    showDetails.next_episode_to_air.name
+                                    showDetails.next_episode_to_air?.name ?: context.getString(
+                                        R.string.unknown
+                                    )
                                 )
                                 binding.nextReleaseDateTextView.text = context.getString(
                                     R.string.next_episode,
-                                    showDetails.next_episode_to_air.air_date
+                                    showDetails.next_episode_to_air?.air_date ?: context.getString(
+                                        R.string.unknown
+                                    )
                                 )
                             }
                         } else {
@@ -449,7 +461,9 @@ class MediaAdapter<T>(
                                 binding.nextReleaseLayout.visibility = View.GONE
                             } else {
                                 binding.nextReleaseDateTextView.text = context.getString(
-                                    R.string.next_episode, attributes.nextRelease ?: "N/A"
+                                    R.string.next_episode, attributes.nextRelease ?: context.getString(
+                                        R.string.unknown
+                                    )
                                 )
                             }
                         } else {
@@ -489,7 +503,7 @@ class MediaAdapter<T>(
                             mediaItem.release_date ?: context.getString(R.string.release_date_n_a)
                         )
                         binding.overviewTextView.text = context.getString(
-                            R.string.description, mediaItem.overview
+                            R.string.description, mediaItem.overview ?: context.getString(R.string.no_description)
                         )
                         binding.endDateTextView.visibility = View.GONE
                     }
@@ -499,7 +513,7 @@ class MediaAdapter<T>(
                             mediaItem.first_air_date ?: context.getString(R.string.first_air_date_n_a)
                         )
                         binding.overviewTextView.text = context.getString(
-                            R.string.description, mediaItem.overview
+                            R.string.description, mediaItem.overview ?: context.getString(R.string.no_description)
                         )
                         binding.endDateTextView.visibility = View.GONE
                     }

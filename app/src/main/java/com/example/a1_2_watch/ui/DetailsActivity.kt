@@ -483,23 +483,23 @@ class DetailsActivity : AppCompatActivity() {
             }
             binding.releaseDateTextView.text = buildString {
                 append("Release Date: ")
-                append(movie.release_date)
+                append(movie.release_date ?: getString(R.string.unknown))
             }
             binding.runtimeTextView.text = buildString {
                 append("Runtime: ")
-                append(movie.runtime.let { "$it minutes" })
+                append(movie.runtime.let { "$it minutes" }) ?: getString(R.string.unknown)
             }
             binding.genresTextView.text = buildString {
                 append("Genres: ")
-                append(movie.genres.joinToString(", ") { it.name })
+                append(movie.genres?.joinToString(", ") { it.name } ?: getString(R.string.unknown))
             }
             binding.revenueTextView.text = buildString {
                 append("Revenue: \$")
-                append(movie.revenue)
+                append(movie.revenue ?: getString(R.string.unknown))
             }
             binding.budgetTextView.text = buildString {
                 append("Budget: \$")
-                append(movie.budget)
+                append(movie.budget ?: getString(R.string.unknown))
             }
             binding.mediaRatingTextView.text =
                 String.format(Locale.getDefault(), "%.1f", movie.vote_average)
@@ -529,30 +529,41 @@ class DetailsActivity : AppCompatActivity() {
             Log.d("DetailsActivity", "Updating TV show details")
             binding.titleTextView.text = tvShow.name
             binding.descriptionTextView.text =
-                tvShow.overview ?: getString(R.string.no_overview_available)
+                StringBuilder().apply {
+                    append("Description: \n")
+                    append(
+                        if (tvShow.overview.isNullOrEmpty()) getString(R.string.no_overview_available)
+                        else tvShow.overview
+                    )
+                }
             binding.releaseDateTextView.text = buildString {
                 append("First Air Date: ")
-                append(tvShow.first_air_date)
+                append(tvShow.first_air_date ?: getString(R.string.unknown))
             }
             binding.seasonCountTextView.text = buildString {
                 append("Seasons: ")
-                append(tvShow.number_of_seasons)
+                append(tvShow.number_of_seasons ?: getString(R.string.unknown))
             }
             binding.episodeCountTextView.text = buildString {
                 append("Episodes: ")
-                append(tvShow.number_of_episodes)
+                append(tvShow.number_of_episodes ?: getString(R.string.unknown))
             }
             binding.runtimeTextView.text = buildString {
                 append("Runtime: ")
-                append(tvShow.episode_run_time.joinToString(", ") { "$it min" })
+                append(tvShow.episode_run_time ?: getString(R.string.unknown))
+                append(" minutes")
             }
             binding.mediaRatingTextView.text =
-                String.format(Locale.getDefault(), "%.1f", tvShow.vote_average)
+                String.format(
+                    Locale.getDefault(),
+                    "%.1f",
+                    tvShow.vote_average ?: getString(R.string._0_0)
+                )
 
             if (tvShow.status == "Ended") {
                 binding.endDateTextView.text = buildString {
                     append("Last Air Date: ")
-                    append(tvShow.last_air_date ?: "Unknown")
+                    append(tvShow.last_air_date ?: getString(R.string.unknown))
                 }
                 binding.nextReleaseLayout.visibility = View.GONE
             } else {
@@ -562,16 +573,16 @@ class DetailsActivity : AppCompatActivity() {
                     .into(binding.sandClockView)
                 binding.nextReleaseTextView.text = buildString {
                     append("Next Episode to Air: ")
-                    append(tvShow.next_episode_to_air?.name ?: "Unknown")
+                    append(tvShow.next_episode_to_air?.name ?: getString(R.string.unknown))
                 }
                 binding.nextReleaseDateTextView.text = buildString {
                     append("When? ")
-                    append(tvShow.next_episode_to_air?.air_date ?: "Unknown")
+                    append(tvShow.next_episode_to_air?.air_date ?: getString(R.string.unknown))
                 }
             }
             binding.genresTextView.text = buildString {
                 append("Genres: ")
-                append(tvShow.genres.joinToString(", ") { it.name })
+                append(tvShow.genres?.joinToString(", ") { it.name } ?: getString(R.string.unknown))
             }
             Glide.with(this)
                 .load(Constants.IMAGE_URL + (tvShow.poster_path ?: tvShow.backdrop_path))
@@ -601,7 +612,12 @@ class DetailsActivity : AppCompatActivity() {
                 binding.seasonCountTextView.visibility = View.GONE
                 binding.titleTextView.text = attributes.canonicalTitle
                 binding.descriptionTextView.text =
-                    attributes.synopsis ?: getString(R.string.no_overview_available)
+                    StringBuilder().apply {
+                        append("Synopsis: \n")
+                        append(
+                            attributes.synopsis ?: getString(R.string.no_overview_available)
+                        )
+                    }
                 binding.releaseDateTextView.text = buildString {
                     append("Start Date: ")
                     append(attributes.startDate ?: getString(R.string.unknown))
@@ -610,10 +626,10 @@ class DetailsActivity : AppCompatActivity() {
                     append("End Date: ")
                     append(attributes.endDate ?: getString(R.string.unknown))
                 }
-                val runtime = attributes.episodeLength.let { "$it min" }
                 binding.runtimeTextView.text = buildString {
                     append("Runtime : ")
-                    append(runtime)
+                    append(attributes.episodeLength ?: getString(R.string.unknown))
+                    append(" minutes")
                 }
                 binding.episodeCountTextView.text = buildString {
                     append("Episodes: ")
@@ -622,12 +638,12 @@ class DetailsActivity : AppCompatActivity() {
                 binding.mediaRatingTextView.text = String.format(
                     Locale.getDefault(),
                     "%.1f",
-                    attributes.averageRating.toFloat() / 10
+                    attributes.averageRating?.toFloat()?.div(10) ?: getString(R.string._0_0)
                 )
                 if (attributes.endDate != null) {
                     binding.endDateTextView.text = buildString {
                         append("Last Air Date: ")
-                        append(attributes.endDate)
+                        append(attributes.endDate) ?: getString(R.string.unknown)
                     }
                     binding.nextReleaseLayout.visibility = View.GONE
                 } else {
@@ -638,10 +654,12 @@ class DetailsActivity : AppCompatActivity() {
                     binding.nextReleaseTextView.text = buildString {
                         append("Next Episode to Air: ")
                         append(attributes.nextRelease?.subSequence(0, 10))
+                            ?: getString(R.string.unknown)
                     }
                     binding.nextReleaseDateTextView.text = buildString {
                         append("When? ")
                         append(attributes.nextRelease?.subSequence(11, 16))
+                            ?: getString(R.string.unknown)
                     }
                 }
                 Glide.with(this)

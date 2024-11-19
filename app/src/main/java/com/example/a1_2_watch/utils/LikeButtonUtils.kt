@@ -214,7 +214,7 @@ class LikeButtonUtils(context: Context) {
      * Extension function to convert [ShowDetails] to a minimal [Show].
      */
     private fun ShowDetails.toMinimalShow() = Show(
-        id = id,
+        id = id ?: 0,
         name = name,
         overview = overview ?: "",
         poster_path = poster_path,

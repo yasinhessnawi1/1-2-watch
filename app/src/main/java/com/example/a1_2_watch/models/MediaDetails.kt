@@ -21,18 +21,18 @@ import com.google.gson.annotations.SerializedName
  */
 data class MovieDetails(
     @SerializedName("backdrop_path") val backdrop_path: String?,
-    @SerializedName("budget") val budget: Int,
-    @SerializedName("genres") val genres: List<Genre>,
+    @SerializedName("budget") val budget: Int?,
+    @SerializedName("genres") val genres: List<Genre>?,
     @SerializedName("id") val id: Int,
     @SerializedName("overview") val overview: String?,
-    @SerializedName("popularity") val popularity: Double,
+    @SerializedName("popularity") val popularity: Double?,
     @SerializedName("poster_path") val poster_path: String?,
-    @SerializedName("release_date") val release_date: String,
-    @SerializedName("revenue") val revenue: Int,
-    @SerializedName("runtime") val runtime: Int,
-    @SerializedName("status") val status: String,
-    @SerializedName("title") val title: String,
-    @SerializedName("vote_average") val vote_average: Double,
+    @SerializedName("release_date") val release_date: String?,
+    @SerializedName("revenue") val revenue: Int?,
+    @SerializedName("runtime") val runtime: Int?,
+    @SerializedName("status") val status: String?,
+    @SerializedName("title") val title: String?,
+    @SerializedName("vote_average") val vote_average: Double?,
 )
 
 /**
@@ -54,21 +54,21 @@ data class MovieDetails(
  * @property vote_average Average vote score.
  */
 data class ShowDetails(
-    @SerializedName("episode_run_time") val episode_run_time: List<Int>,
-    @SerializedName("first_air_date") val first_air_date: String,
-    @SerializedName("genres") val genres: List<Genre>,
-    @SerializedName("id") val id: Int,
+    @SerializedName("episode_run_time") val episode_run_time: List<Int>?,
+    @SerializedName("first_air_date") val first_air_date: String?,
+    @SerializedName("genres") val genres: List<Genre>?,
+    @SerializedName("id") val id: Int?,
     @SerializedName("last_air_date") val last_air_date: String?,
     @SerializedName("last_episode_to_air") val last_episode_to_air: LastEpisodeToAir?,
-    @SerializedName("name") val name: String,
+    @SerializedName("name") val name: String?,
     @SerializedName("next_episode_to_air") val next_episode_to_air: LastEpisodeToAir?,
-    @SerializedName("number_of_episodes") val number_of_episodes: Int,
-    @SerializedName("number_of_seasons") val number_of_seasons: Int,
+    @SerializedName("number_of_episodes") val number_of_episodes: Int?,
+    @SerializedName("number_of_seasons") val number_of_seasons: Int?,
     @SerializedName("overview") val overview: String?,
     @SerializedName("poster_path") val poster_path: String?,
     @SerializedName("backdrop_path") val backdrop_path: String?,
-    @SerializedName("status") val status: String,
-    @SerializedName("vote_average") val vote_average: Double,
+    @SerializedName("status") val status: String?,
+    @SerializedName("vote_average") val vote_average: Double?,
 )
 
 
@@ -109,15 +109,15 @@ data class AnimeData(
 data class Attributes(
     @SerializedName("synopsis") val synopsis: String?,
     @SerializedName("canonicalTitle") val canonicalTitle: String?,
-    @SerializedName("averageRating") val averageRating: String,
+    @SerializedName("averageRating") val averageRating: String?,
     @SerializedName("startDate") val startDate: String?,
     @SerializedName("endDate") val endDate: String?,
     @SerializedName("nextRelease") val nextRelease: String?,
-    @SerializedName("subtype") val subtype: String,
-    @SerializedName("status") val status: String,
+    @SerializedName("subtype") val subtype: String?,
+    @SerializedName("status") val status: String?,
     @SerializedName("posterImage") val posterImage : PosterImage?,
     @SerializedName("episodeCount") val episodeCount: String?,
-    @SerializedName("episodeLength") val episodeLength: Int
+    @SerializedName("episodeLength") val episodeLength: Int?
 )
 
 
