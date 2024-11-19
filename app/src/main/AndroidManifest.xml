@@ -28,7 +28,7 @@
         <activity
             android:name=".ui.UserLikedActivity"
             android:exported="true"
-            android:label="@string/user_page"
+            android:label="@string/likedPage"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <activity

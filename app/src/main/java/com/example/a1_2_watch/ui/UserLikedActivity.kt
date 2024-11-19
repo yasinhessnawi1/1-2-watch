@@ -1,7 +1,8 @@
 package com.example.a1_2_watch.ui
 
-import android.content.Context
+import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -11,8 +12,6 @@ import com.example.a1_2_watch.databinding.UserLikedLayoutBinding
 import com.example.a1_2_watch.models.Anime
 import com.example.a1_2_watch.models.Movie
 import com.example.a1_2_watch.models.Show
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -22,243 +21,259 @@ import com.example.a1_2_watch.utils.NavigationUtils
 import com.example.a1_2_watch.utils.LikeButtonUtils
 
 /**
- * UserPageActivity displays a list of media items that the user has marked as liked.
- * This activity provides functionality to view and manage liked media items.
+ * UserLikedActivity displays a list of media items that the user has marked as liked.
+ * It manages functionality to view and manage liked movies, TV shows, and anime.
  */
 class UserLikedActivity : AppCompatActivity() {
+
     // Binds the user page layout for accessing UI components.
     private lateinit var binding: UserLikedLayoutBinding
-    // Creates adapter for displaying a list of liked movies.
+
+    // Adapters for managing and displaying the user's liked items.
     private lateinit var moviesAdapter: MediaAdapter<Movie>
-    // Creates adapter for displaying a list of liked TV Shows.
     private lateinit var showsAdapter: MediaAdapter<Show>
-    // Creates adapter for displaying a list of liked anime.
     private lateinit var animeAdapter: MediaAdapter<Anime>
-    // SharedPreferences instance for storing and retrieving liked items from persistent storage.
-    private val sharedPreferences by lazy {
-        getSharedPreferences("liked_items", Context.MODE_PRIVATE)
-    }
-    // LikeButtonUtils for managing like functionality.
+
+    // Utility class for managing like functionality.
     private lateinit var likeButtonUtils: LikeButtonUtils
 
-
     /**
-     * This function initializes the activity, sets up view bindings, RecyclerViews, adapters, loads
-     * liked items, and configures bottom navigation.
+     * Called when the activity is created.
+     * Initializes bindings, adapters, sets up navigation, and loads the user's liked items.
      *
-     * @param savedInstanceState Used to restore the activity's previously saved state if available.
+     * @param savedInstanceState State of the activity if it was previously saved.
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Create binding with the User layout view
-        binding = UserLikedLayoutBinding.inflate(layoutInflater)
-        // Sets the content view to the User layout.
-        setContentView(binding.root)
-        // Initialize LikeButtonUtils for managing liked items.
-        likeButtonUtils = LikeButtonUtils(this)
-        // Set up the Go Back button and finish activity when back button is pressed
-        binding.goBackButton.setOnClickListener {
-            finish()
+        try {
+            Log.d("UserLikedActivity", "onCreate: Initializing UserLikedActivity")
+
+            // Inflate the UserLiked layout view.
+            binding = UserLikedLayoutBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+
+            // Initialize LikeButtonUtils for managing liked items.
+            likeButtonUtils = LikeButtonUtils(this)
+
+            // Set up the Go Back button to close the activity.
+            binding.goBackButton.setOnClickListener { finish() }
+
+            // Set up the RecyclerViews and adapters.
+            setupAdapters()
+
+            // Load liked items for movies, TV shows, and anime.
+            loadLikedItems()
+
+            // Set up the bottom navigation.
+            setupBottomNavigation()
+        } catch (e: Exception) {
+            Log.e("UserLikedActivity", "Error during onCreate: ${e.message}", e)
         }
-        // Setup RecyclerViews and Adapters for displaying and managing liked items.
-        setupAdapters()
-        // Load the user's liked items.
-        loadLikedItems()
-        // Setup Bottom Navigation
-        setupBottomNavigation()
     }
 
     /**
-     * This function called when the activity is resumed, and reloads liked items every time the
-     * activity is resumed to ensure it shows the latest data.
+     * Called when the activity is resumed.
+     * Reloads the user's liked items to reflect any recent changes.
      */
     override fun onResume() {
         super.onResume()
-        // Reload liked items to update any changes made on other screens.
-        loadLikedItems()
+        try {
+            Log.d("UserLikedActivity", "onResume: Reloading liked items")
+            loadLikedItems()
+        } catch (e: Exception) {
+            Log.e("UserLikedActivity", "Error during onResume: ${e.message}", e)
+        }
     }
 
     /**
-     * This function sets up adapters for each media type and sets up RecyclerViews for horizontal
-     * scrolling.
+     * Sets up the RecyclerView adapters for movies, TV shows, and anime.
+     * Configures each adapter with click listeners and sets horizontal scrolling.
      */
     private fun setupAdapters() {
-        // Variable for holding the context.
-        val context = this
-        // Sets up adapter for movies with click listeners
-        moviesAdapter = MediaAdapter(
-            context = context,
-            onItemClick = { movie ->
-                NavigationUtils.navigateToDetails(this, movie.id, MediaType.MOVIES.name)
-            },
-            onSaveClick = { toggleLikeAndRefresh(it) },
-            fetchDetailsFromAPI = true,
-                    lifecycleOwner = this
+        try {
+            Log.d("UserLikedActivity", "Setting up adapters")
 
+            // Set up the movies adapter.
+            moviesAdapter = createMediaAdapter(this, MediaType.MOVIES)
+            binding.likedMoviesRecyclerView.apply {
+                layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                adapter = moviesAdapter
+            }
 
-        )
-        // Sets up adapter for TV Shows with click listeners
-        showsAdapter = MediaAdapter(
-            context = context,
-            onItemClick = { show ->
-                NavigationUtils.navigateToDetails(this, show.id, MediaType.TV_SHOWS.name)
-            },
-            onSaveClick = { toggleLikeAndRefresh(it) },
-            fetchDetailsFromAPI = true,
-                    lifecycleOwner = this
+            // Set up the TV shows adapter.
+            showsAdapter = createMediaAdapter(this, MediaType.TV_SHOWS)
+            binding.likedTvShowsRecyclerView.apply {
+                layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                adapter = showsAdapter
+            }
 
-        )
-        // Sets up adapter for anime with click listeners
-        animeAdapter = MediaAdapter(
-            context = context,
-            onItemClick = { anime ->
-                NavigationUtils.navigateToDetails(this, anime.id, MediaType.ANIME.name)
-            },
-            onSaveClick = { toggleLikeAndRefresh(it) },
-            fetchDetailsFromAPI = true,
-            lifecycleOwner = this
-
-        )
-        // Sets the layout manager for displaying items horizontally in the liked movies RecyclerView.
-        binding.likedMoviesRecyclerView.apply {
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            adapter = moviesAdapter
-        }
-        // Sets the layout manager for displaying items horizontally in the liked TV Shows RecyclerView.
-        binding.likedTvShowsRecyclerView.apply {
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            adapter = showsAdapter
-        }
-        // Sets the layout manager for displaying items horizontally in the liked anime RecyclerView.
-        binding.likedAnimeRecyclerView.apply {
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            adapter = animeAdapter
+            // Set up the anime adapter.
+            animeAdapter = createMediaAdapter(this, MediaType.ANIME)
+            binding.likedAnimeRecyclerView.apply {
+                layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                adapter = animeAdapter
+            }
+        } catch (e: Exception) {
+            Log.e("UserLikedActivity", "Error setting up adapters: ${e.message}", e)
         }
     }
 
     /**
-     * This function returns the list of user's liked items for movies, TV Shows, and anime from the
-     * SharedPreferences. It updates each RecyclerView with corresponding items or shows an empty
-     * view if no items are liked.
+     * Creates a MediaAdapter for the specified media type.
+     * Configures the adapter with item click and like button click listeners.
+     *
+     * @param activity The current activity.
+     * @param mediaType The type of media (MOVIES, TV_SHOWS, ANIME).
+     * @return A configured MediaAdapter instance.
+     */
+    private fun <T> createMediaAdapter(activity: Activity, mediaType: MediaType): MediaAdapter<T> {
+        return MediaAdapter(
+            context = activity,
+            onItemClick = { item ->
+                try {
+                    val mediaId = when (item) {
+                        is Movie -> item.id
+                        is Show -> item.id
+                        is Anime -> item.id
+                        else -> throw IllegalArgumentException("Unknown media type")
+                    }
+                    NavigationUtils.navigateToDetails(activity, mediaId, mediaType.name)
+                } catch (e: Exception) {
+                    Log.e("UserLikedActivity", "Error navigating to details: ${e.message}", e)
+                }
+            },
+            onSaveClick = { item ->
+                try {
+                    toggleLikeAndRefresh(item)
+                } catch (e: Exception) {
+                    Log.e("UserLikedActivity", "Error toggling like status: ${e.message}", e)
+                }
+            }
+        )
+    }
+
+    /**
+     * Loads the user's liked items for movies, TV shows, and anime.
+     * Updates the RecyclerViews and empty state text views accordingly.
      */
     private fun loadLikedItems() {
         lifecycleScope.launch {
-            val likedMovies = withContext(Dispatchers.IO) {
-                likeButtonUtils.getLikedMovies()
-            }
+            try {
+                Log.d("UserLikedActivity", "Loading liked items")
+                // Reset adapter to clear stale data
+                moviesAdapter.setMediaList(emptyList())
+                showsAdapter.setMediaList(emptyList())
+                animeAdapter.setMediaList(emptyList())
+                // Load liked movies.
+                val likedMovies = withContext(Dispatchers.IO) { likeButtonUtils.getLikedMovies() }
+                updateRecyclerView(likedMovies, moviesAdapter, binding.likedMoviesRecyclerView, binding.emptyMoviesTextView)
 
-            withContext(Dispatchers.Main) {
-                if (likedMovies.isEmpty()) {
-                    binding.emptyMoviesTextView.visibility = View.VISIBLE
-                    binding.likedMoviesRecyclerView.visibility = View.GONE
-                } else {
-                    binding.emptyMoviesTextView.visibility = View.GONE
-                    binding.likedMoviesRecyclerView.visibility = View.VISIBLE
-                    moviesAdapter.setMediaList(likedMovies)
-                }
-            }
+                // Load liked TV shows.
+                val likedShows = withContext(Dispatchers.IO) { likeButtonUtils.getLikedShows() }
+                updateRecyclerView(likedShows, showsAdapter, binding.likedTvShowsRecyclerView, binding.emptyTvShowsTextView)
 
-            val likedShows = withContext(Dispatchers.IO) {
-                likeButtonUtils.getLikedShows()
-            }
+                // Load liked anime.
+                val likedAnime = withContext(Dispatchers.IO) { likeButtonUtils.getLikedAnime() }
+                updateRecyclerView(likedAnime, animeAdapter, binding.likedAnimeRecyclerView, binding.emptyAnimeTextView)
 
-            withContext(Dispatchers.Main) {
-                if (likedShows.isEmpty()) {
-                    binding.emptyTvShowsTextView.visibility = View.VISIBLE
-                    binding.likedTvShowsRecyclerView.visibility = View.GONE
-                } else {
-                    binding.emptyTvShowsTextView.visibility = View.GONE
-                    binding.likedTvShowsRecyclerView.visibility = View.VISIBLE
-                    showsAdapter.setMediaList(likedShows)
-                }
-            }
-
-            val likedAnime = withContext(Dispatchers.IO) {
-                likeButtonUtils.getLikedAnime()
-            }
-
-            withContext(Dispatchers.Main) {
-                if (likedAnime.isEmpty()) {
-                    binding.emptyAnimeTextView.visibility = View.VISIBLE
-                    binding.likedAnimeRecyclerView.visibility = View.GONE
-                } else {
-                    binding.emptyAnimeTextView.visibility = View.GONE
-                    binding.likedAnimeRecyclerView.visibility = View.VISIBLE
-                    animeAdapter.setMediaList(likedAnime)
-                }
+            } catch (e: Exception) {
+                Log.e("UserLikedActivity", "Error loading liked items: ${e.message}", e)
             }
         }
     }
 
-
-
     /**
-     * This function toggles the liked status of a given item. It also refreshes the liked item list
-     * to reflect the current like status.
+     * Updates a RecyclerView with a list of items and handles the visibility of the corresponding empty state text view.
      *
-     * @param item The media item whose liked status is being toggled.
+     * @param items The list of media items to be displayed.
+     * @param adapter The adapter managing the RecyclerView.
+     * @param recyclerView The RecyclerView to be updated.
+     * @param emptyTextView The TextView to show when the list is empty.
      */
-    private fun toggleLikeAndRefresh(item: Any) {
-        lifecycleScope.launch {
-            // Toggle like status
-            likeButtonUtils.toggleLikeToItem(item)
+    private fun <T> updateRecyclerView(items: List<T>, adapter: MediaAdapter<T>, recyclerView: View, emptyTextView: View) {
+        try {
+            if (items.isEmpty()) {
+                emptyTextView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+            } else {
+                emptyTextView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
+                adapter.setMediaList(items)
+            }
+        } catch (e: Exception) {
+            Log.e("UserLikedActivity", "Error updating RecyclerView: ${e.message}", e)
+        }
+    }
 
-            // Remove item from adapter
-            when (item) {
-                is Movie -> {
-                    moviesAdapter.removeMediaItem(item)
-                    if (moviesAdapter.itemCount == 0) {
-                        binding.emptyMoviesTextView.visibility = View.VISIBLE
-                        binding.likedMoviesRecyclerView.visibility = View.GONE
-                    }
+    /**
+     * Toggles the liked status of a given item.
+     * Refreshes the liked items to reflect the updated status and removes the item from the list if it is unliked.
+     *
+     * @param item The media item to toggle the liked status for.
+     */
+    private fun <T> toggleLikeAndRefresh(item: T) {
+        lifecycleScope.launch {
+            try {
+                // Toggle the like status of the item.
+                likeButtonUtils.toggleLikeToItem(item as Any)
+
+                // Remove the item from the adapter if unliked.
+                when (item) {
+                    is Movie -> updateAdapterAfterUnlike(item, moviesAdapter, binding.likedMoviesRecyclerView, binding.emptyMoviesTextView)
+                    is Show -> updateAdapterAfterUnlike(item, showsAdapter, binding.likedTvShowsRecyclerView, binding.emptyTvShowsTextView)
+                    is Anime -> updateAdapterAfterUnlike(item, animeAdapter, binding.likedAnimeRecyclerView, binding.emptyAnimeTextView)
                 }
-                is Show -> {
-                    showsAdapter.removeMediaItem(item)
-                    if (showsAdapter.itemCount == 0) {
-                        binding.emptyTvShowsTextView.visibility = View.VISIBLE
-                        binding.likedTvShowsRecyclerView.visibility = View.GONE
-                    }
-                }
-                is Anime -> {
-                    animeAdapter.removeMediaItem(item)
-                    if (animeAdapter.itemCount == 0) {
-                        binding.emptyAnimeTextView.visibility = View.VISIBLE
-                        binding.likedAnimeRecyclerView.visibility = View.GONE
-                    }
-                }
+            } catch (e: Exception) {
+                Log.e("UserLikedActivity", "Error toggling like status: ${e.message}", e)
             }
         }
     }
 
-
-
-
-
+    /**
+     * Updates the adapter by removing an unliked item and handles empty state visibility.
+     *
+     * @param item The item to remove from the adapter.
+     * @param adapter The adapter managing the RecyclerView.
+     * @param recyclerView The RecyclerView being managed.
+     * @param emptyTextView The TextView to show when the list becomes empty.
+     */
+    private fun <T> updateAdapterAfterUnlike(item: T, adapter: MediaAdapter<T>, recyclerView: View, emptyTextView: View) {
+        try {
+            adapter.removeMediaItem(item)
+            if (adapter.itemCount == 0) {
+                emptyTextView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+            }
+        } catch (e: Exception) {
+            Log.e("UserLikedActivity", "Error updating adapter after unliking: ${e.message}", e)
+        }
+    }
 
     /**
-     * This function sets up the bottom navigation bar, configures each tab with its navigation behavior.
+     * Sets up the bottom navigation bar, configuring each tab with its respective navigation behavior.
      */
     private fun setupBottomNavigation() {
-        // Sets the default selected item to the User tab.
-        binding.bottomNavigationView.selectedItemId = R.id.user
-        // Configures the bottom navigation bar's item selection listener.
-        binding.bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.home -> {
-                    // Navigates to the Home tab if the Home is selected.
-                    NavigationUtils.navigateToHome(this)
-                    true
+        try {
+            // Set the default selected item to the User tab.
+            binding.bottomNavigationView.selectedItemId = R.id.user
+
+            // Configure the bottom navigation bar item selection listener.
+            binding.bottomNavigationView.setOnItemSelectedListener { item ->
+                when (item.itemId) {
+                    R.id.home -> {
+                        NavigationUtils.navigateToHome(this)
+                        true
+                    }
+                    R.id.user -> true // Stay on the current screen.
+                    R.id.discover -> {
+                        NavigationUtils.navigateToDiscover(this)
+                        true
+                    }
+                    else -> false
                 }
-                // Keeps the user on user screen if user icon is selected.
-                R.id.user -> true
-                R.id.discover -> {
-                    // Navigates to the Discover tab if the Discover is selected.
-                    NavigationUtils.navigateToDiscover(this)
-                    true
-                }
-                // No navigation for any other cases.
-                else -> false
             }
+        } catch (e: Exception) {
+            Log.e("UserLikedActivity", "Error setting up bottom navigation: ${e.message}", e)
         }
     }
 }

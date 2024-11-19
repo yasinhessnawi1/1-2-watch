@@ -1,5 +1,6 @@
 package com.example.a1_2_watch.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -7,6 +8,7 @@ import com.bumptech.glide.Glide
 import com.example.a1_2_watch.databinding.ProviderLayoutBinding
 import com.example.a1_2_watch.models.Provider
 import com.example.a1_2_watch.R
+import com.example.a1_2_watch.utils.Constants.IMAGE_URL
 
 /**
  * This adapter for displaying a list of streaming providers.
@@ -24,10 +26,15 @@ class ProvidersAdapter(private var providers: List<Provider>) :
      * @return ProviderViewHolder A new instance of ProviderViewHolder.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProviderViewHolder {
-        // Inflate the provider layout for each provider item by using ProviderLayoutBinding.
-        val binding =
-            ProviderLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ProviderViewHolder(binding)
+        return try {
+            // Inflate the provider layout for each provider item by using ProviderLayoutBinding.
+            val binding =
+                ProviderLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ProviderViewHolder(binding)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating view holder", e)
+            throw e
+        }
     }
 
     /**
@@ -37,10 +44,14 @@ class ProvidersAdapter(private var providers: List<Provider>) :
      * @param position Position of the item to be displayed in the RecyclerView.
      */
     override fun onBindViewHolder(holder: ProviderViewHolder, position: Int) {
-        // Gets the provider item at the specified position.
-        val provider = providers[position]
-        // Binds the provider data to the view holder.
-        holder.bind(provider)
+        try {
+            // Gets the provider item at the specified position.
+            val provider = providers[position]
+            // Binds the provider data to the view holder.
+            holder.bind(provider)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error binding view holder at position $position", e)
+        }
     }
 
     /**
@@ -57,22 +68,14 @@ class ProvidersAdapter(private var providers: List<Provider>) :
      * @param newProviders The new list of providers to display.
      */
     fun updateProviders(newProviders: List<Provider>) {
-        // Updates the list of providers with the new data.
-        providers = newProviders
-        // Notify the adapter that the list has changed
-        notifyDataSetChanged()
-    }
-
-    /**
-     * This function adds an item to the list of providers and notifies the adapter that the data set has changed.
-     * @param provider The provider to be added to the list.
-     *
-     */
-    fun addProvider(provider: Provider) {
-        // Adds the new provider to the list.
-        providers = providers + provider
-        // Notifies the adapter that the data set has changed.
-        notifyDataSetChanged()
+        try {
+            // Updates the list of providers with the new data.
+            providers = newProviders
+            // Notify the adapter that the list has changed
+            notifyItemChanged(0, providers.size)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating providers list", e)
+        }
     }
 
     /**
@@ -89,19 +92,27 @@ class ProvidersAdapter(private var providers: List<Provider>) :
          * @param provider The provider item to bind data for.
          */
         fun bind(provider: Provider) {
-            // Sets the provider name.
-            binding.providerNameTextView.text = provider.providerName
-            if (provider.logoPath == null) {
-                // Load provider logo using Glide library.
-                Glide.with(binding.providerLogoImageView.context)
-                    .load(R.drawable.provider_place_holder)
-                    .into(binding.providerLogoImageView)
-            } else {
-                // Load provider logo using Glide library.
-                Glide.with(binding.providerLogoImageView.context)
-                    .load("https://image.tmdb.org/t/p/original/${provider.logoPath}")
-                    .into(binding.providerLogoImageView)
+            try {
+                // Sets the provider name.
+                binding.providerNameTextView.text = provider.providerName
+                if (provider.logoPath == null) {
+                    // Load provider logo using Glide library.
+                    Glide.with(binding.providerLogoImageView.context)
+                        .load(R.drawable.provider_place_holder)
+                        .into(binding.providerLogoImageView)
+                } else {
+                    // Load provider logo using Glide library.
+                    Glide.with(binding.providerLogoImageView.context)
+                        .load("${IMAGE_URL}${provider.logoPath}")
+                        .into(binding.providerLogoImageView)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error binding provider data: ${provider.providerName}", e)
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "ProvidersAdapter"
     }
 }

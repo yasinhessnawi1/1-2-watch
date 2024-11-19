@@ -5,6 +5,7 @@
     <string name="home">Home</string>
     <string name="rating">Rating</string>
     <string name="movie_title">Movie Title</string>
+    <string name="likedPage">Liked Page</string>
     <string name="_0_0">0.0</string>
     <string name="save">Save</string>
     <string name="media_item_poster_image">media item poster image</string>
@@ -18,8 +19,8 @@
     <string name="liked_movies">Movies you follow</string>
     <string name="liked_tv_shows">Tv shows you follow</string>
     <string name="liked_anime">Anime you follow</string>
-    <string name="user_page">user\n</string>
     <string name="go_back">Go back\n</string>
+    <string name="title">title</string>
     <string name="empty_movies_list">You didn\'t like any Movie yet, please like a Movie and it will appear here.</string>
     <string name="empty_tv_shows_list">You didn\'t like any tv show yet, please like a TV Show and they will appear here.</string>
     <string name="empty_anime_list">You didn\'t like any Anime yet, please give an Anime a like and they will appear here.</string>

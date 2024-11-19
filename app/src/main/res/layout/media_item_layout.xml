@@ -67,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/_0_0"
                 android:textStyle="bold"
-                android:textColor="@android:color/white"
+                android:textColor="@android:color/darker_gray"
                 android:textSize="18sp"
                 android:shadowColor="#000000"
                 android:shadowDx="1"
@@ -90,7 +90,10 @@
             android:layout_weight="1"
             android:background="@drawable/bg_text"
             android:textAlignment="center"
+            android:padding="8dp"
             android:text="@string/movie_title"
+            android:layout_margin="4dp"
+
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -101,7 +104,9 @@
             android:background="@drawable/bg_text"
             android:contentDescription="@string/more_info"
             android:layout_gravity="center"
+            android:padding="8dp"
             android:gravity="center"
+            android:layout_margin="4dp"
             android:textAlignment="center"
             android:src="@drawable/arrow_down" />
     </LinearLayout>
@@ -109,20 +114,19 @@
     <LinearLayout
         android:id="@+id/expandableDetailsLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         android:visibility="gone"
-        android:layout_margin="8dp"
-        android:gravity="center"
-        android:padding="8dp">
+        android:gravity="center">
 
         <TextView
             android:id="@+id/releaseDateTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:background="@drawable/bg_text"
             android:textAlignment="center"
             android:gravity="center"
+            android:padding="12dp"
             android:layout_marginBottom="8dp"
 
             />
@@ -136,26 +140,27 @@
             >
             <TextView
                 android:id="@+id/nextReleaseTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:textSize="18sp"
+                android:padding="12dp"
                 android:background="@drawable/bg_text"
                 android:textAlignment="center"
                 />
 
             <ImageView
                 android:id="@+id/sandClockView"
-                android:layout_width="75dp"
-                android:layout_height="75dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
                 android:layout_gravity="center"
                 android:layout_margin="8dp"
-                android:background="@drawable/bg_text"
                 />
             <TextView
                 android:id="@+id/nextReleaseDateTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:textSize="18sp"
+                android:padding="12dp"
                 android:background="@drawable/bg_text"
                 android:textAlignment="center"
                 />
@@ -164,18 +169,19 @@
         </LinearLayout>
         <TextView
             android:id="@+id/endDateTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:background="@drawable/bg_text"
             android:textAlignment="center"
+            android:padding="12dp"
             android:layout_marginBottom="8dp"
             />
 
         <TextView
             android:id="@+id/overviewTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="12dp"
             android:background="@drawable/bg_text"
             android:textAlignment="center"
              />

@@ -7,34 +7,37 @@ import com.example.a1_2_watch.utils.Constants
 import com.example.a1_2_watch.utils.Constants.KITSU_URL
 
 /**
- * MediaRepository is responsible for fetching media data such as popular movies, TV shows, and anime.
- * It interacts with the TMDB and Kitsu APIs to retrieve the necessary information.
+ * Repository responsible for interacting with remote APIs to fetch media data, such as movies, TV shows, and anime.
+ * Provides an abstraction layer between the API clients and the rest of the application.
  */
 class MediaRepository {
-    // The API key for TMDB API authentication.
+
+    // API key used for authenticating requests to the TMDB API.
     private val apiKey = Constants.API_KEY
 
-    // Instances of ApiService for TMDB and Kitsu APIs.
+    // TMDB API service instance.
     private val tmdbApiService = ApiClient.getApiService()
+
+    // Kitsu API service instance for fetching anime data.
     private val kitsuApiService = ApiClient.getApiService(KITSU_URL)
 
     /**
      * Fetches a list of popular movies from the TMDB API.
      *
      * @param page The page number for pagination.
-     * @return A list of popular movies or an empty list if the request fails.
+     * @return A list of [Movie] objects representing popular movies, or an empty list if the request fails.
      */
     suspend fun fetchPopularMovies(page: Int): List<Movie> {
         return try {
             val response = tmdbApiService.getPopularMovies(apiKey, page)
             if (response.isSuccessful) {
-                response.body()?.results?.subList(0,15) ?: emptyList() // Limit to 15 movies
+                // Retrieve up to 15 popular movies, or return an empty list if no results are found.
+                response.body()?.results?.subList(0, 15) ?: emptyList()
             } else {
-                Log.e("MediaRepository", "Failed to fetch movies: ${response.message()}")
                 emptyList()
             }
         } catch (e: Exception) {
-            Log.e("MediaRepository", "Exception in fetchPopularMovies: ${e.message}")
+            Log.e(TAG, "Error fetching popular movies for page: $page", e)
             emptyList()
         }
     }
@@ -43,19 +46,19 @@ class MediaRepository {
      * Fetches a list of popular TV shows from the TMDB API.
      *
      * @param page The page number for pagination.
-     * @return A list of popular TV shows or an empty list if the request fails.
+     * @return A list of [Show] objects representing popular TV shows, or an empty list if the request fails.
      */
     suspend fun fetchPopularTVShows(page: Int): List<Show> {
         return try {
             val response = tmdbApiService.getPopularTVShows(apiKey, page)
             if (response.isSuccessful) {
-                response.body()?.results?.subList(0,15) ?: emptyList() // Limit to 15 TV shows
+                // Retrieve up to 15 popular TV shows, or return an empty list if no results are found.
+                response.body()?.results?.subList(0, 15) ?: emptyList()
             } else {
-                Log.e("MediaRepository", "Failed to fetch TV shows: ${response.message()}")
                 emptyList()
             }
         } catch (e: Exception) {
-            Log.e("MediaRepository", "Exception in fetchPopularTVShows: ${e.message}")
+            Log.e(TAG, "Error fetching popular TV shows for page: $page", e)
             emptyList()
         }
     }
@@ -64,8 +67,8 @@ class MediaRepository {
      * Fetches a list of popular anime from the Kitsu API.
      *
      * @param page The page number for pagination.
-     * @param limit The number of items per page.
-     * @return A list of popular anime or an empty list if the request fails.
+     * @param limit The maximum number of items per page.
+     * @return A list of [Anime] objects representing popular anime, or an empty list if the request fails.
      */
     suspend fun fetchPopularAnime(page: Int, limit: Int): List<Anime> {
         return try {
@@ -74,42 +77,39 @@ class MediaRepository {
             if (response.isSuccessful) {
                 response.body()?.data ?: emptyList()
             } else {
-                Log.e("MediaRepository", "Failed to fetch anime: ${response.message()}")
                 emptyList()
             }
         } catch (e: Exception) {
-            Log.e("MediaRepository", "Exception in fetchPopularAnime: ${e.message}")
+            Log.e(TAG, "Error fetching popular anime for page: $page, limit: $limit", e)
             emptyList()
         }
     }
 
     /**
-     * Fetches a list of movies related to a specific movie by its ID from the TMDB API.
+     * Fetches a list of movies related to a specific movie from the TMDB API.
      *
      * @param movieId The unique ID of the movie.
-     * @return A list of related movies or an empty list if the request fails.
+     * @return A list of [Movie] objects representing related movies, or an empty list if the request fails.
      */
     suspend fun fetchRelatedMovies(movieId: Int): List<Movie> {
         return try {
             val response = tmdbApiService.getRelatedMovies(movieId, apiKey)
             if (response.isSuccessful) {
-                Log.d("MediaRepository", "Related movies response: ${response.body()}")
                 response.body()?.results ?: emptyList()
             } else {
-                Log.e("MediaRepository", "Failed to fetch related movies: ${response.message()}")
                 emptyList()
             }
         } catch (e: Exception) {
-            Log.e("MediaRepository", "Exception in fetchRelatedMovies: ${e.message}")
+            Log.e(TAG, "Error fetching related movies for movieId: $movieId", e)
             emptyList()
         }
     }
 
     /**
-     * Fetches a list of TV shows related to a specific TV show by its ID from the TMDB API.
+     * Fetches a list of TV shows related to a specific TV show from the TMDB API.
      *
      * @param tvShowId The unique ID of the TV show.
-     * @return A list of related TV shows or an empty list if the request fails.
+     * @return A list of [Show] objects representing related TV shows, or an empty list if the request fails.
      */
     suspend fun fetchRelatedTVShows(tvShowId: Int): List<Show> {
         return try {
@@ -117,20 +117,19 @@ class MediaRepository {
             if (response.isSuccessful) {
                 response.body()?.results ?: emptyList()
             } else {
-                Log.e("MediaRepository", "Failed to fetch related TV shows: ${response.message()}")
                 emptyList()
             }
         } catch (e: Exception) {
-            Log.e("MediaRepository", "Exception in fetchRelatedTVShows: ${e.message}")
+            Log.e(TAG, "Error fetching related TV shows for tvShowId: $tvShowId", e)
             emptyList()
         }
     }
 
     /**
-     * Fetches a list of anime by type from the Kitsu API.
+     * Fetches detailed information about a specific anime, including its relationships, from the Kitsu API.
      *
-     * @param type The subtype of the anime.
-     * @return A list of anime matching the subtype or an empty list if the request fails.
+     * @param animeId The unique ID of the anime.
+     * @return An [AnimeResponseIncluded] object containing the anime's relationships, or `null` if the request fails.
      */
     suspend fun getAnimeWithRelationships(animeId: String): AnimeResponseIncluded? {
         return try {
@@ -141,18 +140,37 @@ class MediaRepository {
                 null
             }
         } catch (e: Exception) {
-            Log.e("AnimeRepository", "Error fetching anime with relationships", e)
+            Log.e(TAG, "Error fetching anime with relationships for animeId: $animeId", e)
             null
         }
     }
+
+    /**
+     * Extracts related anime IDs from the response containing anime relationships.
+     *
+     * @param animeResponse The response object containing the anime's relationships.
+     * @return A list of related anime IDs, or an empty list if no relationships are found.
+     */
     fun extractRelatedAnimeIds(animeResponse: AnimeResponseIncluded): List<String> {
-        return animeResponse.included
-            ?.filter { it.type == "mediaRelationships" }
-            ?.mapNotNull { it.relationships?.destination?.data }
-            ?.filter { it.type == "anime" }
-            ?.map { it.id }
-            ?: emptyList()
+        return try {
+            animeResponse.included
+                ?.filter { it.type == "mediaRelationships" } // Filter relationships by type.
+                ?.mapNotNull { it.relationships?.destination?.data } // Extract related data.
+                ?.filter { it.type == "anime" } // Ensure only anime types are included.
+                ?.map { it.id } // Map to the list of IDs.
+                ?: emptyList()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting related anime IDs", e)
+            emptyList()
+        }
     }
+
+    /**
+     * Fetches a list of anime related to a specific anime ID using the Kitsu API.
+     *
+     * @param animeId The unique ID of the anime.
+     * @return A list of [Anime] objects representing related anime, or an empty list if the request fails.
+     */
     suspend fun getRelatedAnime(animeId: String): List<Anime> {
         val animeWithRelationships = getAnimeWithRelationships(animeId) ?: return emptyList()
         val relatedAnimeIds = extractRelatedAnimeIds(animeWithRelationships)
@@ -166,7 +184,7 @@ class MediaRepository {
                     emptyList()
                 }
             } catch (e: Exception) {
-                Log.e("AnimeRepository", "Error fetching related anime", e)
+                Log.e(TAG, "Error fetching related anime for animeId: $animeId", e)
                 emptyList()
             }
         } else {
@@ -174,4 +192,7 @@ class MediaRepository {
         }
     }
 
+    companion object {
+        private const val TAG = "MediaRepository"
+    }
 }

@@ -88,8 +88,6 @@ interface ApiService {
     ): Response<AnimeDetails>
 
 
-
-
     /**
      * Fetches available watch providers for a specific movie by the given ID.
      *
@@ -202,10 +200,11 @@ interface ApiService {
     ): Response<ShowResponse>
 
     /**
-     * Searches for anime on Kitsu by a specific type.
+     * Fetches a list of anime related to a specific anime by a given ID.
      *
-     * @param subtype The subtype of the anime to filter results by.
-     * @return A Response object with the response containing a list of anime matching the subtype.
+     * @param id The unique ID of the anime.
+     * @param include The related resources to include in the response.
+     * @return A Response object with the response containing a list of related anime and included items.
      */
     @GET("anime/{id}")
     suspend fun getAnime(
@@ -213,8 +212,15 @@ interface ApiService {
         @Query("include") include: String
     ): Response<AnimeResponseIncluded>
 
+    /**
+     * Fetches a list of anime by ID from the Kitsu API.
+     *
+     * @param id The ID of the anime to fetch.
+     * @return A Response object with the response containing a list of anime.
+     */
+
     @GET("anime")
     suspend fun getAnimeList(
-        @Query("filter[id]") ids: String
+        @Query("filter[id]") id: String
     ): Response<AnimeResponse>
 }

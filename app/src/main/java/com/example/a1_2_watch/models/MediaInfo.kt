@@ -13,15 +13,14 @@ import com.google.gson.annotations.SerializedName
  * @property isLiked Indicates if the movie is marked as liked by the user or not.
  */
 data class Movie(
-    @SerializedName("id")  val id: Int,
+    @SerializedName("id")  override val id: Int,
     @SerializedName("title") val title: String?,
     @SerializedName("overview") val overview: String,
     @SerializedName("poster_path") val poster_path: String?,
     @SerializedName("vote_average") val vote_average: Double,
     @SerializedName("release_date") val release_date: String?,
     @SerializedName("isLiked") var isLiked: Boolean = false,
-    @SerializedName("media_type")  var mediaType: MediaType = MediaType.MOVIES
-)
+) : LikedItem
 
 /**
  * Data class representing a TV show.
@@ -34,15 +33,14 @@ data class Movie(
  * @property isLiked Indicates if the TV show is marked as liked by the user or not.
  */
 data class Show(
-    @SerializedName("id")  val id: Int,
+    @SerializedName("id")  override val id: Int,
     @SerializedName("name") val name: String?,
     @SerializedName("overview") val overview: String,
     @SerializedName("poster_path") val poster_path: String?,
     @SerializedName("vote_average") val vote_average: Double,
     @SerializedName("first_air_date") val first_air_date: String?,
     @SerializedName("isLiked") var isLiked: Boolean = false,
-    @SerializedName("media_type")  var mediaType: MediaType = MediaType.TV_SHOWS
-)
+) : LikedItem
 
 
 
@@ -54,11 +52,49 @@ data class Show(
  * @property isLiked Indicates if the anime is marked as liked by the user or not.
  */
 data class Anime(
-    @SerializedName("id")  val id: Int,
-    @SerializedName("attributes") val attributes: Attributes,
+    @SerializedName("id")  override val id: Int,
+    @SerializedName("attributes") val attributes: MiniAttributes?,
     @SerializedName("isLiked") var isLiked: Boolean = false,
-    @SerializedName("media_type")  var mediaType: MediaType = MediaType.ANIME
+) : LikedItem
+
+/**
+ * Additional Attributes for an anime.
+ *
+ * @property synopsis Summary or plot of the anime.
+ * @property canonicalTitle Primary title.
+ * @property averageRating Average rating score.
+ * @property posterImage Poster image details.
+ */
+data class MiniAttributes(
+    @SerializedName("synopsis") val synopsis: String?,
+    @SerializedName("canonicalTitle") val canonicalTitle: String?,
+    @SerializedName("averageRating") val averageRating: String,
+    @SerializedName("startDate") val startDate: String?,
+    @SerializedName("posterImage") val posterImage: PosterImage?,
 )
+
+/**
+ * Interface representing a liked media item with a common `id` property.
+ */
+interface LikedItem {
+    val id: Int
+}
+
+/**
+ * Data class representing a minimized media item for search results.
+ *
+ * @param id The ID of the media item.
+ * @param title The title of the media item.
+ * @param posterPath The poster path for the media item.
+ * @param type The type of the media (e.g., MOVIE, TV_SHOW, ANIME).
+ */
+data class MinimizedItem(
+    @SerializedName("id") val id: Int,
+    @SerializedName("title") val title: String,
+    @SerializedName("posterPath") val posterPath: String?,
+    @SerializedName("type") val type: String,
+)
+
 
 
 
