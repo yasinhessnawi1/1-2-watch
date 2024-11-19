@@ -56,7 +56,7 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
         WorkManager.getInstance(getApplication()).enqueue(fetchRelatedItemsWork!!)
 
         workInfoObserver = Observer { workInfo ->
-            if (workInfo?.id == fetchRelatedItemsWork?.id && workInfo.state.isFinished) {
+            if (workInfo.id == fetchRelatedItemsWork?.id && workInfo.state.isFinished) {
                 if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                     Log.d("DiscoverViewModel", "FetchRelatedItemsWorker succeeded.")
                     loadRelatedItemsFromPreferences()

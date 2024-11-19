@@ -63,7 +63,7 @@ class FetchSearchResultsWorker(
                             id = movie.id,
                             title = movie.title.toString(),
                             posterPath = movie.poster_path,
-                            type = "MOVIE"
+                            type = "MOVIES"
                         )
                     )
                 }
@@ -78,7 +78,7 @@ class FetchSearchResultsWorker(
                             id = show.id,
                             title = show.name.toString(),
                             posterPath = show.poster_path,
-                            type = "TV_SHOW"
+                            type = "TV_SHOWS"
                         )
                     )
                 }

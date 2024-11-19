@@ -75,7 +75,7 @@ class DiscoverAdapter(
                     is MinimizedItem -> {
                         // For search results, use MinimizedItem fields.
                         title = item.title
-                        posterPath = if (item.type == "MOVIE" || item.type == "TV_SHOW") {
+                        posterPath = if (item.type == "MOVIES" || item.type == "TV_SHOWS") {
                             Constants.IMAGE_URL + (item.posterPath ?: "")
                         } else {
                             item.posterPath
