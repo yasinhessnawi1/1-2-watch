@@ -550,7 +550,10 @@ class DetailsActivity : AppCompatActivity() {
             }
             binding.runtimeTextView.text = buildString {
                 append("Runtime: ")
-                append(tvShow.episode_run_time ?: getString(R.string.unknown))
+                append(
+                    if (tvShow.episode_run_time?.joinToString(", ").isNullOrEmpty() )
+                        getString(R.string.unknown)
+                    else tvShow.episode_run_time?.joinToString(", ") )
                 append(" minutes")
             }
             binding.mediaRatingTextView.text =
