@@ -79,6 +79,7 @@ class DiscoverActivity : AppCompatActivity() {
         try {
             Log.d("DiscoverActivity", "onResume: Refreshing liked status")
             refreshLikedStatus()
+            binding.bottomNavigationView.selectedItemId = R.id.discover
         } catch (e: Exception) {
             Log.e("DiscoverActivity", "Error in onResume: ${e.message}", e)
         }

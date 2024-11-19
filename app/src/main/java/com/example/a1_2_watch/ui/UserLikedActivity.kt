@@ -80,6 +80,7 @@ class UserLikedActivity : AppCompatActivity() {
         try {
             Log.d("UserLikedActivity", "onResume: Reloading liked items")
             loadLikedItems()
+            binding.bottomNavigationView.selectedItemId = R.id.user
         } catch (e: Exception) {
             Log.e("UserLikedActivity", "Error during onResume: ${e.message}", e)
         }
