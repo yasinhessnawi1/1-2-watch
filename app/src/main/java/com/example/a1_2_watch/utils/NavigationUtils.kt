@@ -2,6 +2,7 @@ package com.example.a1_2_watch.utils
 
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import com.example.a1_2_watch.ui.DetailsActivity
 import com.example.a1_2_watch.ui.DiscoverActivity
 import com.example.a1_2_watch.ui.HomeActivity
@@ -15,6 +16,8 @@ import com.example.a1_2_watch.ui.UserLikedActivity
  */
 object NavigationUtils {
 
+    private const val TAG = "NavigationUtils"
+
     /**
      * This method navigates to the DetailsActivity and displaying details for a specific media item.
      * this method accepts the ID and type of the media item, which are used in the details activity to
@@ -26,14 +29,18 @@ object NavigationUtils {
      *                  be displayed.
      */
     fun navigateToDetails(activity: Activity, mediaId: Int, mediaType: String) {
-        // Create the intent to start DetailsActivity, and passing the media ID and type as extras.
-        val intent = Intent(activity, DetailsActivity::class.java).apply {
-            // Add the media ID and type to the intent extras.
-            putExtra("MEDIA_ID", mediaId)
-            putExtra("MEDIA_TYPE", mediaType)
+        try {
+            // Create the intent to start DetailsActivity, and passing the media ID and type as extras.
+            val intent = Intent(activity, DetailsActivity::class.java).apply {
+                // Add the media ID and type to the intent extras.
+                putExtra("MEDIA_ID", mediaId)
+                putExtra("MEDIA_TYPE", mediaType)
+            }
+            // Start DetailsActivity with our created intent.
+            activity.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error navigating to DetailsActivity with mediaId: $mediaId, mediaType: $mediaType", e)
         }
-        // Start DetailsActivity with our created intent.
-        activity.startActivity(intent)
     }
 
     /**
@@ -42,23 +49,31 @@ object NavigationUtils {
      * @param activity The current activity context.
      */
     fun navigateToHome(activity: Activity) {
-        // Create intent to start the home (main) activity.
-        val intent = Intent(activity, HomeActivity::class.java)
-        // Start HomeActivity with our created intent.
-        activity.startActivity(intent)
+        try {
+            // Create intent to start the home (main) activity.
+            val intent = Intent(activity, HomeActivity::class.java)
+            // Start HomeActivity with our created intent.
+            activity.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error navigating to HomeActivity", e)
+        }
     }
 
     /**
-     * This method navigates to the UerPageActivity, which displays the user favorites media
+     * This method navigates to the UserLikedActivity, which displays the user favorites media
      * list like the favorites movie, TvShow, and anime.
      *
      * @param activity The current activity context.
      */
     fun navigateToUser(activity: Activity) {
-        // Create intent to navigate to User Page activity
-        val intent = Intent(activity, UserLikedActivity::class.java)
-        // Start UserPageActivity with our created intent.
-        activity.startActivity(intent)
+        try {
+            // Create intent to navigate to User Page activity
+            val intent = Intent(activity, UserLikedActivity::class.java)
+            // Start UserPageActivity with our created intent.
+            activity.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error navigating to UserLikedActivity", e)
+        }
     }
 
     /**
@@ -69,9 +84,13 @@ object NavigationUtils {
      * @param activity The current activity context.
      */
     fun navigateToDiscover(activity: Activity) {
-        // Create intent to navigate to the Discover Activity.
-        val intent = Intent(activity, DiscoverActivity::class.java)
-        // Start DiscoverActivity with our created intent.
-        activity.startActivity(intent)
+        try {
+            // Create intent to navigate to the Discover Activity.
+            val intent = Intent(activity, DiscoverActivity::class.java)
+            // Start DiscoverActivity with our created intent.
+            activity.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error navigating to DiscoverActivity", e)
+        }
     }
 }

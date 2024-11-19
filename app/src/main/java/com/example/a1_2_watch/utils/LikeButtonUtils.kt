@@ -1,205 +1,244 @@
-// LikeButtonUtils.kt
 package com.example.a1_2_watch.utils
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.a1_2_watch.models.Anime
-import com.example.a1_2_watch.models.AnimeDetails
-import com.example.a1_2_watch.models.Movie
-import com.example.a1_2_watch.models.MovieDetails
-import com.example.a1_2_watch.models.Show
-import com.example.a1_2_watch.models.ShowDetails
+import android.util.Log
+import com.example.a1_2_watch.models.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.example.a1_2_watch.R
 
-class LikeButtonUtils(private val context: Context) {
+/**
+ * Utility class for handling like button interactions and liked items.
+ *
+ * @property context The application context.
+ */
+class LikeButtonUtils(context: Context) {
 
-    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("liked_items", Context.MODE_PRIVATE)
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("liked_items", Context.MODE_PRIVATE)
     private val gson = Gson()
 
+    /**
+     * Toggles the like status of a media item and updates SharedPreferences.
+     *
+     * @param item The media item to toggle the like status for.
+     */
     suspend fun toggleLikeToItem(item: Any) = withContext(Dispatchers.IO) {
-        when (item) {
-            is Movie -> toggleLike(item, "liked_movies")
-            is MovieDetails -> {
-                val minimalItem = Movie(
-                    id = item.id,
-                    title = item.title,
-                    overview = item.overview ?: "",
-                    poster_path = item.poster_path,
-                    vote_average = item.vote_average,
-                    release_date = item.release_date,
-                    isLiked = true
-                )
-                toggleLike(minimalItem, "liked_movies")
+        try {
+            val key = when (item) {
+                is Movie -> "liked_movies"
+                is MovieDetails -> "liked_movies"
+                is Show -> "liked_shows"
+                is ShowDetails -> "liked_shows"
+                is Anime -> "liked_anime"
+                is AnimeDetails -> "liked_anime"
+                else -> return@withContext
             }
-            is Show -> toggleLike(item, "liked_shows")
-            is ShowDetails -> {
-                val minimalItem = Show(
-                    id = item.id,
-                    name = item.name,
-                    overview = item.overview ?: "",
-                    poster_path = item.poster_path,
-                    vote_average = item.vote_average,
-                    first_air_date = item.first_air_date,
-                    isLiked = true
-                )
-                toggleLike(minimalItem, "liked_shows")
+
+            val minimalItem = when (item) {
+                is Movie -> item
+                is MovieDetails -> item.toMinimalMovie()
+                is Show -> item
+                is ShowDetails -> item.toMinimalShow()
+                is Anime -> item
+                is AnimeDetails -> item.toMinimalAnime()
+                else -> return@withContext
             }
-            is Anime -> toggleLike(item, "liked_anime")
-            is AnimeDetails -> {
-                val animeId = item.data?.id?.toIntOrNull()
-                val attributes = item.data?.attributes
-                if (animeId != null && attributes != null) {
-                    val minimalItem = Anime(id = animeId, attributes = attributes, isLiked = true)
-                    toggleLike(minimalItem, "liked_anime")
-                }
+
+            when (minimalItem) {
+                is Movie -> toggleLike(minimalItem, key, Movie::class.java)
+                is Show -> toggleLike(minimalItem, key, Show::class.java)
+                is Anime -> toggleLike(minimalItem, key, Anime::class.java)
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling like for item: $item", e)
         }
     }
-
-
-    private fun toggleLike(item: Any, key: String) {
-        // Retrieve the existing liked items as a list
-        val likedItemsJson = sharedPreferences.getString(key, null)
-        val likedItems = if (likedItemsJson != null) {
-            gson.fromJson<MutableList<String>>(likedItemsJson, object : TypeToken<MutableList<String>>() {}.type)
-        } else {
-            mutableListOf()
-        }
-
-        // Deserialize existing items
-        val likedItemsList = likedItems.mapNotNull { json ->
-            when (key) {
-                "liked_movies" -> gson.fromJson(json, Movie::class.java)
-                "liked_shows" -> gson.fromJson(json, Show::class.java)
-                "liked_anime" -> gson.fromJson(json, Anime::class.java)
-                else -> null
-            }
-        }.toMutableList()
-
-        // Check if the item is already liked
-        val itemId = when (item) {
-            is Movie -> item.id
-            is Show -> item.id
-            is Anime -> item.id
-            else -> return
-        }
-
-        val existingItemIndex = likedItemsList.indexOfFirst { likedItem ->
-            when (likedItem) {
-                is Movie -> likedItem.id == itemId
-                is Show -> likedItem.id == itemId
-                is Anime -> likedItem.id == itemId
-                else -> false
-            }
-        }
-
-        if (existingItemIndex != -1) {
-            // Item is already liked, remove it
-            likedItemsList.removeAt(existingItemIndex)
-        } else {
-            // Item is not liked, add it to the beginning
-            likedItemsList.add(0, item)
-        }
-
-        // Serialize the updated liked items back to JSON strings
-        val updatedJsonList = likedItemsList.map { gson.toJson(it) }
-
-        // Save back to SharedPreferences
-        val updatedJson = gson.toJson(updatedJsonList)
-        sharedPreferences.edit().putString(key, updatedJson).apply()
-    }
-
-
-
-    suspend fun getLikedMovies(): List<Movie> = withContext(Dispatchers.IO) {
-        val likedItemsJson = sharedPreferences.getString("liked_movies", null)
-        val likedItems = if (likedItemsJson != null) {
-            gson.fromJson<MutableList<String>>(likedItemsJson, object : TypeToken<MutableList<String>>() {}.type)
-        } else {
-            mutableListOf()
-        }
-
-        likedItems.mapNotNull { json ->
-            val movie = gson.fromJson(json, Movie::class.java)
-            movie.isLiked = true
-            movie
-        }
-    }
-
-
-  suspend fun getLikedShows(): List<Show> = withContext(Dispatchers.IO) {
-        val likedItemsJsonSet = sharedPreferences.getString("liked_shows", null)
-        val likedItems = if (likedItemsJsonSet != null) {
-          gson.fromJson<MutableList<String>>(likedItemsJsonSet, object : TypeToken<MutableList<String>>() {}.type)
-      } else {
-          mutableListOf()
-      }
-      likedItems.mapNotNull { json ->
-          val show = gson.fromJson(json, Show::class.java)
-          show.isLiked = true
-          show
-      }
-
-    }
-
-    suspend fun getLikedAnime(): List<Anime> = withContext(Dispatchers.IO) {
-        val likedAnimeJsonSet = sharedPreferences.getString("liked_anime", null)
-        val likedAnime = if (likedAnimeJsonSet != null) {
-            gson.fromJson<MutableList<String>>(likedAnimeJsonSet, object : TypeToken<MutableList<String>>() {}.type)
-        } else {
-            mutableListOf()
-        }
-        likedAnime.mapNotNull { json ->
-            val anime = gson.fromJson(json, Anime::class.java)
-            anime.isLiked = true
-            anime
-        }
-    }
-
 
     /**
-     * This function checks if a given media item is in the liked list or not.
+     * Toggles the like status for a given media item in SharedPreferences.
      *
-     * @param item The media item to check the like status for.
-     * @return Boolean indicating whether the item is liked or not.
+     * @param item The media item to toggle.
+     * @param key The SharedPreferences key for the media type.
+     * @param type The class type of the media item.
      */
-    suspend fun isItemLiked(item: Any): Boolean = withContext(Dispatchers.IO) {
-        when (item) {
-            is Movie -> {
-                val likedMovies = getLikedMovies()
-                likedMovies.any { it.id == item.id }
-            }
-            is MovieDetails -> {
-                val likedMovies = getLikedMovies()
-                likedMovies.any { it.id == item.id }
-            }
-            is Show -> {
-                val likedShows = getLikedShows()
-                likedShows.any { it.id == item.id }
-            }
-            is ShowDetails -> {
-                val likedShows = getLikedShows()
-                likedShows.any { it.id == item.id }
-            }
-            is Anime -> {
-                val likedAnime = getLikedAnime()
-                likedAnime.any { it.id == item.id }
-            }
-            is AnimeDetails -> {
-                val animeId = item.data?.id?.toIntOrNull()
-                if (animeId != null) {
-                    val likedAnime = getLikedAnime()
-                    likedAnime.any { it.id == animeId }
-                } else {
-                    false
+    private fun <T> toggleLike(item: T, key: String, type: Class<T>) {
+        try {
+            val likedItemsList = getLikedItems(key, type)
+
+            // Check if the item is already liked and toggle its status.
+            val existingItemIndex = likedItemsList.indexOfFirst {
+                when (type) {
+                    Movie::class.java -> (it as Movie).id == (item as Movie).id
+                    Show::class.java -> (it as Show).id == (item as Show).id
+                    Anime::class.java -> (it as Anime).id == (item as Anime).id
+                    else -> false
                 }
             }
-            else -> false
+
+            if (existingItemIndex != -1) {
+                likedItemsList.removeAt(existingItemIndex) // Remove if already liked.
+            } else {
+                likedItemsList.add(0, item) // Add to the list if not liked.
+            }
+
+            saveLikedItems(key, likedItemsList)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling like status for item: $item", e)
         }
     }
 
-}
+    /**
+     * Retrieves liked items for a specific key from SharedPreferences.
+     *
+     * @param key The SharedPreferences key.
+     * @param type The class type of the media item.
+     * @return A mutable list of liked items.
+     */
+    private fun <T> getLikedItems(key: String, type: Class<T>): MutableList<T> {
+        return try {
+            val likedItemsJson = sharedPreferences.getString(key, null)
+            if (likedItemsJson != null) {
+                gson.fromJson(
+                    likedItemsJson,
+                    TypeToken.getParameterized(MutableList::class.java, type).type
+                )
+            } else {
+                mutableListOf()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving liked items for key: $key", e)
+            mutableListOf()
+        }
+    }
 
+    /**
+     * Saves liked items to SharedPreferences.
+     *
+     * @param key The SharedPreferences key.
+     * @param items The list of items to save.
+     */
+    private fun <T> saveLikedItems(key: String, items: List<T>) {
+        try {
+            val updatedJson = gson.toJson(items)
+            sharedPreferences.edit().putString(key, updatedJson).apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving liked items for key: $key", e)
+        }
+    }
+
+    /**
+     * Retrieves liked movies.
+     *
+     * @return A list of liked [Movie] objects.
+     */
+    suspend fun getLikedMovies(): List<Movie> = withContext(Dispatchers.IO) {
+        try {
+            getLikedItems("liked_movies", Movie::class.java).onEach { it.isLiked = true }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving liked movies", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Retrieves liked TV shows.
+     *
+     * @return A list of liked [Show] objects.
+     */
+    suspend fun getLikedShows(): List<Show> = withContext(Dispatchers.IO) {
+        try {
+            getLikedItems("liked_shows", Show::class.java).onEach { it.isLiked = true }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving liked shows", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Retrieves liked anime.
+     *
+     * @return A list of liked [Anime] objects.
+     */
+    suspend fun getLikedAnime(): List<Anime> = withContext(Dispatchers.IO) {
+        try {
+            getLikedItems("liked_anime", Anime::class.java).onEach { it.isLiked = true }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving liked anime", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Checks if a media item is liked.
+     *
+     * @param item The media item to check.
+     * @return `true` if the item is liked, otherwise `false`.
+     */
+    suspend fun isItemLiked(item: Any): Boolean = withContext(Dispatchers.IO) {
+        try {
+            when (item) {
+                is Movie -> getLikedMovies().any { it.id == item.id }
+                is MovieDetails -> getLikedMovies().any { it.id == item.id }
+                is Show -> getLikedShows().any { it.id == item.id }
+                is ShowDetails -> getLikedShows().any { it.id == item.id }
+                is Anime -> getLikedAnime().any { it.id == item.id }
+                is AnimeDetails -> item.data.id.toIntOrNull()?.let { animeId ->
+                    getLikedAnime().any { it.id == animeId }
+                } == true
+                else -> false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking if item is liked: $item", e)
+            false
+        }
+    }
+
+    /**
+     * Extension function to convert [MovieDetails] to a minimal [Movie].
+     */
+    private fun MovieDetails.toMinimalMovie() = Movie(
+        id = id,
+        title = title,
+        overview = overview ?: "",
+        poster_path = poster_path,
+        vote_average = vote_average,
+        release_date = release_date,
+        isLiked = true
+    )
+
+    /**
+     * Extension function to convert [ShowDetails] to a minimal [Show].
+     */
+    private fun ShowDetails.toMinimalShow() = Show(
+        id = id ?: 0,
+        name = name,
+        overview = overview ?: "",
+        poster_path = poster_path,
+        vote_average = vote_average,
+        first_air_date = first_air_date,
+        isLiked = true
+    )
+
+    /**
+     * Extension function to convert [AnimeDetails] to a minimal [Anime].
+     */
+    private fun AnimeDetails.toMinimalAnime() = Anime(
+        id = data.id.toInt(),
+        isLiked = true,
+        attributes = MiniAttributes(
+            canonicalTitle = data.attributes?.canonicalTitle,
+            posterImage = data.attributes?.posterImage,
+            synopsis = data.attributes?.synopsis,
+            averageRating = data.attributes?.averageRating ?: R.string._0_0.toString(),
+            startDate = data.attributes?.startDate
+        )
+    )
+
+    companion object {
+        private const val TAG = "LikeButtonUtils"
+    }
+}

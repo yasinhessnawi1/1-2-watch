@@ -3,7 +3,7 @@
     android:shape="rectangle">
 
     <!-- Background color -->
-    <solid android:color="#E0E0E0" /> <!-- Light grey color -->
+    <solid android:color="#D1CECE" /> <!-- Light grey color -->
 
     <!-- Corner radius -->
     <corners android:radius="12dp" />
@@ -16,5 +16,5 @@
         android:top="4dp" />
     <stroke
         android:width="1dp"
-        android:color="#E0E0E0" /> <!-- Slightly darker grey for the border -->
+        android:color="#BABABA" /> <!-- Slightly darker grey for the border -->
 </shape>

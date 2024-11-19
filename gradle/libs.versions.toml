@@ -1,13 +1,11 @@
 [versions]
 agp = "8.6.0"
 converterGson = "2.9.0"
-glide = "4.12.0"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-kotlinxCoroutinesAndroid = "1.5.2"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.3"
 composeBom = "2024.04.01"
@@ -40,10 +38,8 @@ androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview"
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtxVersion" }
-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinx-coroutines" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version = "4.15.1" }
-glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version = "4.15.1" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

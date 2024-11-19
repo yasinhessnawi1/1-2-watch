@@ -4,17 +4,34 @@
     android:id="@+id/detailsConstraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.DetailsActivity">
+    tools:context=".ui.DetailsActivity"
+    android:background="@drawable/bg_transparent_rounded">
+
+    <ImageButton
+        android:id="@+id/goBackButton"
+        android:layout_width="56dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="14dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/go_back"
+        android:src="@drawable/ic_arrow_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ScrollView
         android:id="@+id/detailsScrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:layout_marginTop="52dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/providersRecyclerView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/goBackButton">
+
 
         <LinearLayout
             android:id="@+id/detailsLinearLayout"
@@ -22,19 +39,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
-            <ImageButton
-                android:id="@+id/goBackButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow_back"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/go_back"
-                android:layout_margin="8dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="8dp">
 
 
                 <androidx.cardview.widget.CardView
@@ -110,8 +119,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
-                android:text="Title"
+                android:text="@string/title"
                 android:textAlignment="center"
+                android:paddingBottom="10dp"
+                android:paddingTop="10dp"
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
@@ -120,37 +131,41 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:layout_margin="8dp"
                 android:gravity="center"
+                android:layout_marginTop="4dp"
+                android:textStyle="bold"
                 >
                 <TextView
                     android:id="@+id/nextReleaseTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="4dp"
+                    android:paddingBottom="12dp"
+                    android:paddingTop="12dp"
                     android:textSize="18sp"
                     android:background="@drawable/bg_text"
                     android:textAlignment="center"
                     android:layout_gravity="center"
+                    android:textStyle="bold"
                     />
 
                 <ImageView
                     android:id="@+id/sandClockView"
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
+                    android:layout_width="49dp"
+                    android:layout_height="49dp"
                     android:layout_gravity="center"
                     android:layout_margin="8dp"
-                    android:background="@drawable/bg_text"
-                    />
+                    android:contentDescription="@string/sand_clock" />
                 <TextView
                     android:id="@+id/nextReleaseDateTextView"
                     android:layout_width="match_parent"
-                    android:layout_height="39dp"
+                    android:layout_height="wrap_content"
                     android:textSize="18sp"
+                    android:paddingBottom="12dp"
+                    android:paddingTop="12dp"
                     android:layout_gravity="center"
                     android:textAlignment="center"
                     android:background="@drawable/bg_text"
-
+                    android:textStyle="bold"
                     />
 
 
@@ -160,83 +175,114 @@
             <TextView
                 android:id="@+id/releaseDateTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
                 android:textAlignment="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:textSize="16sp"
-                android:text="Release Date" />
+                android:textSize="18sp"
+                android:text="@string/first_air_date"
+                android:textStyle="bold"/>
 
 
             <TextView
                 android:id="@+id/endDateTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:textAlignment="center"
                 android:layout_marginBottom="8dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 />
 
             <TextView
                 android:id="@+id/runtimeTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
                 android:textAlignment="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
+                android:textSize="18sp"
                 android:layout_marginBottom="8dp"
+                android:textStyle="bold"
                 />
 
             <TextView
                 android:id="@+id/revenueTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
                 android:textAlignment="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
+                android:textSize="18sp"
                 android:layout_marginBottom="8dp"
+                android:textStyle="bold"
                 />
 
             <TextView
                 android:id="@+id/budgetTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:textAlignment="center"
                 android:layout_marginBottom="8dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 />
             <TextView
                 android:id="@+id/episodeCountTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
                 android:textAlignment="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:layout_marginBottom="8dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 />
 
             <TextView
                 android:id="@+id/seasonCountTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
                 android:textAlignment="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:layout_marginBottom="8dp"
+                android:textStyle="bold"
+                android:textSize="18sp"
                 />
 
             <TextView
                 android:id="@+id/genresTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
                 android:textAlignment="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:layout_marginBottom="8dp"
+                android:textStyle="bold"
+                android:textSize="18sp"
                 />
 
             <TextView
@@ -246,21 +292,27 @@
                 android:background="@drawable/bg_text"
                 android:layout_gravity="center"
                 android:textAlignment="center"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:layout_marginTop="8dp"
-                android:textSize="16sp"
-                android:text="Description" />
+                android:textSize="18sp"
+                android:text="@string/description"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/noProvidersTextView"
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="16dp"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:background="@drawable/bg_text"
                 android:textAlignment="center"
-                android:text="No providers available in your region."
-                android:textSize="16sp"
-                android:visibility="gone" />
+                android:text="@string/no_providers_available"
+                android:textSize="18sp"
+                android:visibility="gone"
+                android:textStyle="bold"/>
 
         </LinearLayout>
     </ScrollView>
@@ -281,7 +333,7 @@
         android:id="@+id/bottomNavigationView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="?android:attr/windowBackground"
+        android:background="@drawable/bg_transparent_rounded"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
         app:layout_constraintBottom_toBottomOf="parent"
