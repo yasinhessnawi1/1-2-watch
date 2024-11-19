@@ -513,7 +513,11 @@ class MediaAdapter<T>(
                             mediaItem.first_air_date ?: context.getString(R.string.first_air_date_n_a)
                         )
                         binding.overviewTextView.text = context.getString(
-                            R.string.description, mediaItem.overview ?: context.getString(R.string.no_description)
+                            R.string.description,
+                            if(mediaItem.overview.isNullOrEmpty())
+                                 context.getString(R.string.no_description)
+                            else
+                                mediaItem.overview
                         )
                         binding.endDateTextView.visibility = View.GONE
                     }

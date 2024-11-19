@@ -157,17 +157,17 @@ class DiscoverActivity : AppCompatActivity() {
         try {
             Log.d("DiscoverActivity", "Observing ViewModel for data changes")
             discoverViewModel.relatedMovies.observe(this) { movies ->
-                moviesAdapter.setMediaList(movies)
+                moviesAdapter.setMediaList(movies.distinct())
                 binding.emptyMoviesTextView.visibility = if (movies.isEmpty()) View.VISIBLE else View.GONE
             }
 
             discoverViewModel.relatedShows.observe(this) { shows ->
-                showsAdapter.setMediaList(shows)
+                showsAdapter.setMediaList(shows.distinct())
                 binding.emptyTvShowsTextView.visibility = if (shows.isEmpty()) View.VISIBLE else View.GONE
             }
 
             discoverViewModel.relatedAnime.observe(this) { anime ->
-                animeAdapter.setMediaList(anime)
+                animeAdapter.setMediaList(anime.distinct())
                 binding.emptyAnimeTextView.visibility = if (anime.isEmpty()) View.VISIBLE else View.GONE
             }
         } catch (e: Exception) {
