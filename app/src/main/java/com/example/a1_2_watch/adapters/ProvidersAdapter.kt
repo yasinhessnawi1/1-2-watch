@@ -72,7 +72,7 @@ class ProvidersAdapter(private var providers: List<Provider>) :
             // Updates the list of providers with the new data.
             providers = newProviders
             // Notify the adapter that the list has changed
-            notifyItemChanged(0, providers.size)
+            notifyDataSetChanged()
         } catch (e: Exception) {
             Log.e(TAG, "Error updating providers list", e)
         }

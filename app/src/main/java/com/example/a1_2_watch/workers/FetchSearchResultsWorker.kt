@@ -54,21 +54,6 @@ class FetchSearchResultsWorker(
 
             val minimizedResults = mutableListOf<MinimizedItem>() // Aggregated minimized results.
 
-            // Perform movie search.
-            val movieResponse = searchRepository.searchMovies(query)
-            movieResponse?.results?.let { movies ->
-                movies.forEach { movie ->
-                    minimizedResults.add(
-                        MinimizedItem(
-                            id = movie.id,
-                            title = movie.title.toString(),
-                            posterPath = movie.poster_path,
-                            type = "MOVIES"
-                        )
-                    )
-                }
-            }
-
             // Perform TV show search.
             val showResponse = searchRepository.searchTVShows(query)
             showResponse?.results?.let { shows ->
@@ -79,6 +64,21 @@ class FetchSearchResultsWorker(
                             title = show.name.toString(),
                             posterPath = show.poster_path,
                             type = "TV_SHOWS"
+                        )
+                    )
+                }
+            }
+
+            // Perform movie search.
+            val movieResponse = searchRepository.searchMovies(query)
+            movieResponse?.results?.let { movies ->
+                movies.forEach { movie ->
+                    minimizedResults.add(
+                        MinimizedItem(
+                            id = movie.id,
+                            title = movie.title.toString(),
+                            posterPath = movie.poster_path,
+                            type = "MOVIES"
                         )
                     )
                 }

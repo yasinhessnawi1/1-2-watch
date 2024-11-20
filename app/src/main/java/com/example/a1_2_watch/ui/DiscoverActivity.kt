@@ -23,6 +23,8 @@ import com.example.a1_2_watch.workers.FetchSearchResultsWorker
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -44,6 +46,8 @@ class DiscoverActivity : AppCompatActivity() {
     private val discoverAdapter = DiscoverAdapter(onItemClick = { item ->
         handleSearchItemClick(item as MinimizedItem)
     })
+    // Job for handling search queries.
+    private var searchJob: Job? = null
 
     // ViewModel for observing related media content.
     private val discoverViewModel: DiscoverViewModel by viewModels()
@@ -184,17 +188,34 @@ class DiscoverActivity : AppCompatActivity() {
             Log.d("DiscoverActivity", "Setting up SearchView")
             binding.searchViewTextField.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?): Boolean {
-                    query?.let { performSearch(it) }
+                    query?.let {
+                        performSearch(it)
+                    }
                     return true
                 }
 
                 override fun onQueryTextChange(newText: String?): Boolean {
                     val trimmedQuery = newText?.trim() ?: ""
+
+                    // Cancel the previous job if it's still active
+                    searchJob?.cancel()
+
+                    // Check if the query meets the minimum length requirement
                     if (trimmedQuery.isEmpty()) {
                         clearSearchResults()
-                    } else {
-                        performSearch(trimmedQuery)
+                        return true
                     }
+
+                    // Start a new coroutine job with a 2-second delay
+                    searchJob = lifecycleScope.launch {
+                        delay(1000) // Delay for 1 second
+                        if (trimmedQuery.isEmpty()) {
+                            clearSearchResults()
+                        } else {
+                            performSearch(trimmedQuery)
+                        }
+                    }
+
                     return true
                 }
             })
@@ -260,7 +281,7 @@ class DiscoverActivity : AppCompatActivity() {
                         if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                             val resultJson = workInfo.outputData.getString(FetchSearchResultsWorker.KEY_RESULT)
                             val searchResults = parseSearchResults(resultJson ?: "[]")
-                            updateSearchResults(searchResults)
+                            updateSearchResults(searchResults.distinct())
                         } else {
                             Log.e("DiscoverActivity", "Search WorkManager task failed.")
                             clearSearchResults()

@@ -50,7 +50,7 @@ class DiscoverAdapter(
         if (newItems.isNotEmpty()) {
             items.addAll(newItems)
         }
-        notifyItemRangeChanged(0, items.size)
+        notifyDataSetChanged()
     }
 
     /**
