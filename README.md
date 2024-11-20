@@ -89,6 +89,8 @@ git clone https://github.com/yasinhessnawi1/1-2-watch.git
 3. Build and run the project on an Android emulator or physical device.
 - Note: As this is a university project, the API keys for TMDB are included in the codebase in the constants file. 
 For production use, it is recommended to obtain your own API keys (Its 100% free). As the key will be suspended after the project is graded.
+-(Security Notice) This approach for storing the Api key is not secure and should not be used, instead the key should be stored in a secure place like gradle.properties file.
+We are aware of this and chose this approach for the sake of simplicity and to make it easier for the grader to run the project.
 4. Make changes to the codebase and test the application locally.
 
 ## Project Structure
