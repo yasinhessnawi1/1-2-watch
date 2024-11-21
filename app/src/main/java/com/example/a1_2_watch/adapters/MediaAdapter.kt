@@ -199,13 +199,13 @@ class MediaAdapter<T>(
 
                 when (mediaItem) {
                     is Movie -> {
-                        mediaTitle = mediaItem.title ?: "No Title Available"
+                        mediaTitle = mediaItem.title ?: context.getString(R.string.no_title_available)
                         mediaRating = String.format(Locale.getDefault(), "%.1f", mediaItem.vote_average)
                         posterPath = Constants.IMAGE_URL + (mediaItem.poster_path ?: "")
                         isLiked = mediaItem.isLiked
                     }
                     is Show -> {
-                        mediaTitle = mediaItem.name ?: "No Title Available"
+                        mediaTitle = mediaItem.name ?: context.getString(R.string.no_title_available)
                         mediaRating = String.format(Locale.getDefault(), "%.1f", mediaItem.vote_average)
                         posterPath = Constants.IMAGE_URL + (mediaItem.poster_path ?: "")
                         isLiked = mediaItem.isLiked
@@ -218,13 +218,13 @@ class MediaAdapter<T>(
                                 "%.1f",
                                 mediaItem.attributes.averageRating.toFloat() / 10
                             )
-                        } else "N/A"
+                        } else context.getString(R.string._0_0)
                         posterPath = mediaItem.attributes?.posterImage?.original ?: ""
                         isLiked = mediaItem.isLiked
                     }
                     else -> {
-                        mediaTitle = "No Title Available"
-                        mediaRating = "N/A"
+                        mediaTitle = context.getString(R.string.no_title_available)
+                        mediaRating = context.getString(R.string._0_0)
                         posterPath = null
                         isLiked = false
                     }
@@ -295,11 +295,11 @@ class MediaAdapter<T>(
                         isExpanded = false
                     } else {
                         if (fetchDetailsFromAPI) {
+                            // Fetch and display details using WorkManager.
+                            fetchDetailsWithWorker(mediaItem)
                             // Show or hide specific layouts based on media type.
                             binding.nextReleaseLayout.visibility =
                                 if (mediaItem is Movie) View.GONE else View.VISIBLE
-                            // Fetch and display details using WorkManager.
-                            fetchDetailsWithWorker(mediaItem)
                         } else {
                             // Display existing details.
                             binding.nextReleaseLayout.visibility = View.GONE
@@ -340,14 +340,10 @@ class MediaAdapter<T>(
                     else -> workDataOf()
                 }
 
-                // Define constraints if needed (e.g., network connectivity).
-                val constraints =
-                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-
                 // Create the WorkRequest.
                 val fetchDetailsWork =
                     OneTimeWorkRequestBuilder<FetchDetailsWorker>().setInputData(inputData)
-                        .setConstraints(constraints).build()
+                        .build()
 
                 // Enqueue the WorkRequest.
                 WorkManager.getInstance(context).enqueue(fetchDetailsWork)
@@ -393,14 +389,19 @@ class MediaAdapter<T>(
                         val movieDetails = gson.fromJson(resultJson, MovieDetails::class.java)
                         if (movieDetails != null) {
                             binding.releaseDateTextView.text = context.getString(
-                                R.string.release_date, movieDetails.release_date ?: context.getString(
-                                    R.string.release_date_n_a
-                                )
+                                R.string.release_date,
+                                if (movieDetails.release_date.isNullOrBlank()) context.getString(R.string.n_a) else movieDetails.release_date
+
                             )
-                            binding.overviewTextView.text =
-                                context.getString(R.string.description, movieDetails.overview ?: context.getString(
-                                    R.string.no_description
-                                ))
+                            binding.overviewTextView.text = buildString {
+                                append(context.getString(R.string.description))
+                                append(
+                                    if(movieDetails.overview.isNullOrEmpty())
+                                        context.getString(R.string.no_description)
+                                    else
+                                        movieDetails.overview
+                                )
+                            }
                             binding.endDateTextView.visibility = View.GONE
                             binding.nextReleaseLayout.visibility = View.GONE
                         } else {
@@ -412,32 +413,40 @@ class MediaAdapter<T>(
                             gson.fromJson(resultJson, ShowDetails::class.java)
                         if (showDetails != null) {
                             binding.releaseDateTextView.text = context.getString(
-                                R.string.first_air_date, showDetails.first_air_date ?: context.getString(
-                                    R.string.first_air_date_n_a
-                                )
+                                R.string.first_air_date,
+                                if (showDetails.first_air_date.isNullOrBlank()) context.getString(R.string.n_a) else showDetails.first_air_date
+
                             )
-                            binding.overviewTextView.text = context.getString(
-                                R.string.description, showDetails.overview ?: context.getString(
-                                    R.string.no_description
+                            binding.overviewTextView.text = buildString {
+                                append(context.getString(R.string.description))
+                                append(
+                                    if(showDetails.overview.isNullOrEmpty())
+                                        context.getString(R.string.no_description)
+                                    else
+                                        showDetails.overview
                                 )
-                            )
+                            }
 
                             if (showDetails.status == "Ended" ) {
-                                binding.endDateTextView.visibility = View.GONE
+                                binding.endDateTextView.text = buildString {
+                                    append(context.getString(R.string.last_air_date))
+                                    append(" ")
+                                    append(if (showDetails.last_air_date.isNullOrBlank()) context.getString(R.string.n_a) else showDetails.last_air_date
+                                    )
+                                }
                                 binding.nextReleaseLayout.visibility = View.GONE
                             } else {
                                 binding.nextReleaseTextView.text = context.getString(
                                     R.string.next_episode_to_air,
-                                    showDetails.next_episode_to_air?.name ?: context.getString(
-                                        R.string.unknown
-                                    )
+                                    if (showDetails.next_episode_to_air?.name.isNullOrBlank()) context.getString(R.string.unknown) else showDetails.next_episode_to_air?.name
+
                                 )
                                 binding.nextReleaseDateTextView.text = context.getString(
                                     R.string.next_episode,
-                                    showDetails.next_episode_to_air?.air_date ?: context.getString(
-                                        R.string.unknown
-                                    )
+                                    if (showDetails.next_episode_to_air?.air_date.isNullOrBlank()) context.getString(R.string.unknown) else showDetails.next_episode_to_air?.air_date
+
                                 )
+                                binding.endDateTextView.visibility = View.GONE
                             }
                         } else {
                             setDetailsError()
@@ -450,21 +459,39 @@ class MediaAdapter<T>(
                         if (attributes != null) {
                             binding.releaseDateTextView.text = context.getString(
                                 R.string.first_air_date,
-                                attributes.startDate ?: context.getString(R.string.start_date_n_a)
+                                if (mediaItem.attributes?.startDate.isNullOrBlank()) context.getString(R.string.n_a) else mediaItem.attributes?.startDate
                             )
-                            binding.overviewTextView.text = context.getString(
-                                R.string.description,
-                                attributes.synopsis ?: context.getString(R.string.no_description)
-                            )
+                            binding.overviewTextView.text = buildString {
+                                append(context.getString(R.string.description))
+                                append(
+                                    if(animeDetails.data.attributes.synopsis.isNullOrEmpty())
+                                        context.getString(R.string.no_description)
+                                    else
+                                        animeDetails.data.attributes.synopsis
+                                )
+                            }
                             if (attributes.endDate != null) {
-                                binding.endDateTextView.visibility = View.GONE
+                                binding.endDateTextView.text = buildString {
+                                    append(context.getString(R.string.last_air_date))
+                                    append(" ")
+                                   append( if (attributes.endDate.isEmpty()) context.getString(R.string.n_a)
+                                   else attributes.endDate )
+                                }
                                 binding.nextReleaseLayout.visibility = View.GONE
                             } else {
-                                binding.nextReleaseDateTextView.text = context.getString(
-                                    R.string.next_episode, attributes.nextRelease ?: context.getString(
-                                        R.string.unknown
-                                    )
-                                )
+                                binding.nextReleaseTextView.text = buildString {
+                                    append(context.getString(R.string.next_anime_episode))
+                                    append(" ")
+                                    append(attributes.nextRelease?.subSequence(0, 10))
+                                        ?: context.getString(R.string.unknown)
+                                }
+                                binding.nextReleaseDateTextView.text = buildString {
+                                    append(context.getString(R.string.When))
+                                    append(" ")
+                                    append(attributes.nextRelease?.subSequence(11, 16))
+                                        ?: context.getString(R.string.unknown)
+                                }
+                                binding.endDateTextView.visibility = View.GONE
                             }
                         } else {
                             setDetailsError()
@@ -481,7 +508,7 @@ class MediaAdapter<T>(
          */
         private fun setDetailsError() {
             try {
-                binding.releaseDateTextView.text = context.getString(R.string.release_date_n_a)
+                binding.releaseDateTextView.text = context.getString(R.string.n_a)
                 binding.overviewTextView.text = context.getString(R.string.no_description)
                 binding.nextReleaseLayout.visibility = View.GONE
             } catch (e: Exception) {
@@ -500,36 +527,49 @@ class MediaAdapter<T>(
                     is Movie -> {
                         binding.releaseDateTextView.text = context.getString(
                             R.string.release_date,
-                            mediaItem.release_date ?: context.getString(R.string.release_date_n_a)
+                            if (mediaItem.release_date.isNullOrBlank()) context.getString(R.string.n_a) else mediaItem.release_date
                         )
-                        binding.overviewTextView.text = context.getString(
-                            R.string.description, mediaItem.overview ?: context.getString(R.string.no_description)
-                        )
+                        binding.overviewTextView.text = buildString {
+                            append(context.getString(R.string.description))
+                            append(
+                                if(mediaItem.overview.isNullOrEmpty())
+                                    context.getString(R.string.no_description)
+                                else
+                                    mediaItem.overview
+                            )
+                        }
                         binding.endDateTextView.visibility = View.GONE
                     }
                     is Show -> {
                         binding.releaseDateTextView.text = context.getString(
                             R.string.first_air_date,
-                            mediaItem.first_air_date ?: context.getString(R.string.first_air_date_n_a)
+                            if (mediaItem.first_air_date.isNullOrBlank()) context.getString(R.string.n_a) else mediaItem.first_air_date
                         )
-                        binding.overviewTextView.text = context.getString(
-                            R.string.description,
-                            if(mediaItem.overview.isNullOrEmpty())
-                                 context.getString(R.string.no_description)
-                            else
-                                mediaItem.overview
-                        )
+                        binding.overviewTextView.text = buildString {
+                            append(context.getString(R.string.description))
+                            append(
+                                if(mediaItem.overview.isNullOrEmpty())
+                                    context.getString(R.string.no_description)
+                                else
+                                    mediaItem.overview
+                            )
+                        }
                         binding.endDateTextView.visibility = View.GONE
                     }
                     is Anime -> {
                         binding.releaseDateTextView.text = context.getString(
                             R.string.first_air_date,
-                            mediaItem.attributes?.startDate ?: context.getString(R.string.start_date_n_a)
+                            if (mediaItem.attributes?.startDate.isNullOrBlank()) context.getString(R.string.n_a) else mediaItem.attributes?.startDate
                         )
-                        binding.overviewTextView.text = context.getString(
-                            R.string.description,
-                            mediaItem.attributes?.synopsis ?: context.getString(R.string.no_description)
-                        )
+                        binding.overviewTextView.text = buildString {
+                            append(context.getString(R.string.description))
+                            append(
+                                if(mediaItem.attributes?.synopsis.isNullOrEmpty())
+                                    context.getString(R.string.no_description)
+                                else
+                                    mediaItem.attributes?.synopsis
+                            )
+                        }
                         binding.endDateTextView.visibility = View.GONE
                     }
                 }

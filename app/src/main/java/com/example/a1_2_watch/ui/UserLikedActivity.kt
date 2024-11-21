@@ -149,7 +149,9 @@ class UserLikedActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     Log.e("UserLikedActivity", "Error toggling like status: ${e.message}", e)
                 }
-            }
+            },
+            fetchDetailsFromAPI = true,
+            lifecycleOwner = this
         )
     }
 

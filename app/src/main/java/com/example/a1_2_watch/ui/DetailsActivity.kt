@@ -641,7 +641,7 @@ class DetailsActivity : AppCompatActivity() {
                 binding.mediaRatingTextView.text = String.format(
                     Locale.getDefault(),
                     "%.1f",
-                    attributes.averageRating?.toFloat()?.div(10) ?: getString(R.string._0_0)
+                    attributes.averageRating?.toFloat()?.div(10) ?: getString(R.string._0_0).toFloat()
                 )
                 if (attributes.endDate != null) {
                     binding.endDateTextView.text = buildString {

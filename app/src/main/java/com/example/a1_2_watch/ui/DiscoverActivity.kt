@@ -189,6 +189,7 @@ class DiscoverActivity : AppCompatActivity() {
             binding.searchViewTextField.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?): Boolean {
                     query?.let {
+
                         performSearch(it)
                     }
                     return true
@@ -208,7 +209,7 @@ class DiscoverActivity : AppCompatActivity() {
 
                     // Start a new coroutine job with a 2-second delay
                     searchJob = lifecycleScope.launch {
-                        delay(1000) // Delay for 1 second
+                        //delay(1000)  Delay for 1 second
                         if (trimmedQuery.isEmpty()) {
                             clearSearchResults()
                         } else {
@@ -321,6 +322,7 @@ class DiscoverActivity : AppCompatActivity() {
             discoverAdapter.updateItems(results)
             binding.searchResultsRecyclerView.visibility = View.VISIBLE
             binding.searchResultsRecyclerView.bringToFront()
+            binding.discoverScrollView.visibility = View.GONE
         } catch (e: Exception) {
             Log.e("DiscoverActivity", "Error updating search results: ${e.message}", e)
         }
@@ -334,6 +336,7 @@ class DiscoverActivity : AppCompatActivity() {
             Log.d("DiscoverActivity", "Clearing search results")
             discoverAdapter.updateItems(emptyList())
             binding.searchResultsRecyclerView.visibility = View.GONE
+            binding.discoverScrollView.visibility = View.VISIBLE
         } catch (e: Exception) {
             Log.e("DiscoverActivity", "Error clearing search results: ${e.message}", e)
         }

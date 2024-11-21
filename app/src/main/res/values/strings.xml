@@ -6,7 +6,7 @@
     <string name="rating">Rating</string>
     <string name="movie_title">Movie Title</string>
     <string name="likedPage">Liked Page</string>
-    <string name="_0_0">N/A</string>
+    <string name="_0_0">0.0</string>
     <string name="save">Save</string>
     <string name="media_item_poster_image">media item poster image</string>
     <string name="popular_anime">Popular Anime: </string>
@@ -32,17 +32,17 @@
     <string name="no_providers_available">No providers available in this region.</string>
     <string name="error_fetching_providers">Error fetching providers.</string>
     <string name="release_date">Release Date: %1$s</string>
-    <string name="description">Description: \n %1$s</string>
-    <string name="release_date_n_a">Release Date: N/A</string>
+    <string name="description">Description: \n</string>
+    <string name="n_a">N/A</string>
     <string name="no_description">No Description</string>
     <string name="first_air_date">First Air Date: %1$s</string>
-    <string name="last_air_date">Last Air Date: %1$s</string>
+    <string name="last_air_date">Last Air Date: </string>
     <string name="next_episode_to_air">Next Episode to Air: %1$s</string>
-    <string name="first_air_date_n_a">First Air Date: N/A</string>
+    <string name="next_anime_episode">Next Episode to Air: </string>
     <string name="next_episode">Next episode: %1$s</string>
-    <string name="start_date_n_a">Start Date: N/A</string>
     <string name="no_available_providers_in_your_region">No available providers in your region.</string>
     <string name="no_liked_movies">No liked movies to display</string>
     <string name="no_liked_tv_shows">No liked TV shows to display</string>
     <string name="no_liked_anime">No liked anime to display</string>
+    <string name="When">When? </string>
 </resources>
